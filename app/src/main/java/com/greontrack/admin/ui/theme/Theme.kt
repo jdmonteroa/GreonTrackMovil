@@ -8,10 +8,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.greontrack.admin.R
 
 /** Paleta tomada de la app web de GreonTrack (src/index.css). */
 object Greon {
@@ -60,22 +62,39 @@ private val colores = lightColorScheme(
     errorContainer = Greon.ErrorBg
 )
 
-/** Títulos con letra serif (en la web es "Fraunces"). */
-private val titulo = FontFamily.Serif
+/** Fraunces: la letra de los títulos en la web (serif con personalidad). */
+val Fraunces = FontFamily(
+    Font(R.font.fraunces_medium, FontWeight.Medium),
+    Font(R.font.fraunces_semibold, FontWeight.SemiBold),
+    Font(R.font.fraunces_bold, FontWeight.Bold)
+)
+
+/** Plus Jakarta Sans: la letra del texto general en la web. */
+val PlusJakartaSans = FontFamily(
+    Font(R.font.plus_jakarta_sans_regular, FontWeight.Normal),
+    Font(R.font.plus_jakarta_sans_medium, FontWeight.Medium),
+    Font(R.font.plus_jakarta_sans_semibold, FontWeight.SemiBold),
+    Font(R.font.plus_jakarta_sans_bold, FontWeight.Bold),
+    Font(R.font.plus_jakarta_sans_extrabold, FontWeight.ExtraBold)
+)
+
+private val titulo = Fraunces
+private val texto = PlusJakartaSans
 
 private val tipografia = Typography(
+    displaySmall = TextStyle(fontFamily = titulo, fontWeight = FontWeight.SemiBold, fontSize = 34.sp, lineHeight = 40.sp),
     headlineLarge = TextStyle(fontFamily = titulo, fontWeight = FontWeight.SemiBold, fontSize = 30.sp, lineHeight = 36.sp),
     headlineMedium = TextStyle(fontFamily = titulo, fontWeight = FontWeight.SemiBold, fontSize = 25.sp, lineHeight = 31.sp),
     headlineSmall = TextStyle(fontFamily = titulo, fontWeight = FontWeight.SemiBold, fontSize = 21.sp, lineHeight = 27.sp),
     titleLarge = TextStyle(fontFamily = titulo, fontWeight = FontWeight.SemiBold, fontSize = 20.sp, lineHeight = 26.sp),
-    titleMedium = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 22.sp),
-    titleSmall = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 20.sp),
-    bodyLarge = TextStyle(fontSize = 16.sp, lineHeight = 23.sp),
-    bodyMedium = TextStyle(fontSize = 14.sp, lineHeight = 20.sp),
-    bodySmall = TextStyle(fontSize = 12.sp, lineHeight = 16.sp),
-    labelLarge = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 14.sp),
-    labelMedium = TextStyle(fontWeight = FontWeight.Medium, fontSize = 12.sp),
-    labelSmall = TextStyle(fontWeight = FontWeight.Medium, fontSize = 11.sp)
+    titleMedium = TextStyle(fontFamily = texto, fontWeight = FontWeight.Bold, fontSize = 16.sp, lineHeight = 22.sp),
+    titleSmall = TextStyle(fontFamily = texto, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 20.sp),
+    bodyLarge = TextStyle(fontFamily = texto, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 24.sp),
+    bodyMedium = TextStyle(fontFamily = texto, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 20.sp),
+    bodySmall = TextStyle(fontFamily = texto, fontWeight = FontWeight.Normal, fontSize = 12.sp, lineHeight = 17.sp),
+    labelLarge = TextStyle(fontFamily = texto, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 20.sp),
+    labelMedium = TextStyle(fontFamily = texto, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp),
+    labelSmall = TextStyle(fontFamily = texto, fontWeight = FontWeight.Medium, fontSize = 11.sp, lineHeight = 15.sp)
 )
 
 private val formas = Shapes(
