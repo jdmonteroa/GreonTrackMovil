@@ -49,6 +49,7 @@ import com.greontrack.admin.data.SupabaseProvider
 import com.greontrack.admin.ui.AjustesViewModel
 import com.greontrack.admin.ui.components.Avatar
 import com.greontrack.admin.ui.components.ContenidoCarga
+import com.greontrack.admin.ui.components.SkeletonFormulario
 import com.greontrack.admin.ui.components.Etiqueta
 import com.greontrack.admin.ui.components.GreonTopBar
 import com.greontrack.admin.ui.components.Tarjeta
@@ -169,10 +170,7 @@ fun AjustesScreen(
 private fun ContenidoCargaCompacto(vm: AjustesViewModel) {
     Column(Modifier.fillMaxWidth()) {
         when (val e = vm.estado) {
-            is Carga.Cargando ->
-                Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.Center) {
-                    CircularProgressIndicator(color = Greon.Verde)
-                }
+            is Carga.Cargando -> SkeletonFormulario()
             is Carga.Error -> {
                 Text(e.mensaje, color = Greon.Error, style = MaterialTheme.typography.bodyMedium)
                 TextButton(onClick = { vm.cargar() }) { Text("Reintentar") }

@@ -1,5 +1,7 @@
 package com.greontrack.admin.ui.components
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -452,17 +454,28 @@ fun Vacio(texto: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** Muestra cargando / error / contenido según el estado. */
+/**
+ * Muestra skeleton / error / contenido según el estado,
+ * con un desvanecido suave al cambiar de uno a otro.
+ */
 @Composable
 fun <T> ContenidoCarga(
     estado: Carga<T>,
     alReintentar: () -> Unit,
+    cargando: @Composable () -> Unit = { Cargando() },
     contenido: @Composable (T) -> Unit
 ) {
-    when (estado) {
-        is Carga.Cargando -> Cargando()
-        is Carga.Error -> ErrorEstado(estado.mensaje, alReintentar)
-        is Carga.Listo -> contenido(estado.datos)
+    val fase = when (estado) {
+        is Carga.Cargando -> 0
+        is Carga.Error -> 1
+        is Carga.Listo -> 2
+    }
+    Crossfade(targetState = fase, animationSpec = tween(350), label = "carga") { f ->
+        when (f) {
+            0 -> cargando()
+            1 -> (estado as? Carga.Error)?.let { ErrorEstado(it.mensaje, alReintentar) }
+            else -> (estado as? Carga.Listo)?.let { contenido(it.datos) }
+        }
     }
 }
 

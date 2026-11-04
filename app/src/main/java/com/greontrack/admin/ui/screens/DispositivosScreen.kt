@@ -35,6 +35,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.greontrack.admin.data.DispositivoAdmin
 import com.greontrack.admin.ui.DispositivosViewModel
 import com.greontrack.admin.ui.components.ContenidoCarga
+import com.greontrack.admin.ui.components.SkeletonLista
 import com.greontrack.admin.ui.components.Etiqueta
 import com.greontrack.admin.ui.components.GreonTopBar
 import com.greontrack.admin.ui.components.MiniDato
@@ -53,7 +54,7 @@ fun DispositivosScreen(
     Column(Modifier.fillMaxSize()) {
         GreonTopBar(titulo = "Dispositivos", subtitulo = "Aparatos registrados por todos los usuarios", alRefrescar = { vm.cargar() })
 
-        ContenidoCarga(vm.estado, alReintentar = { vm.cargar() }) { lista ->
+        ContenidoCarga(vm.estado, alReintentar = { vm.cargar() }, cargando = { SkeletonLista(avatarRedondo = false) }) { lista ->
             val texto = vm.busqueda.trim()
             val filtrados = lista.filter { d ->
                 (vm.filtroOrigen == null || d.origen == vm.filtroOrigen) &&

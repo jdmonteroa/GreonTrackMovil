@@ -69,6 +69,7 @@ import com.greontrack.admin.data.UsuarioDetalle
 import com.greontrack.admin.ui.UsuarioDetalleViewModel
 import com.greontrack.admin.ui.components.Avatar
 import com.greontrack.admin.ui.components.ContenidoCarga
+import com.greontrack.admin.ui.components.SkeletonDetalle
 import com.greontrack.admin.ui.components.Etiqueta
 import com.greontrack.admin.ui.components.GreonTopBar
 import com.greontrack.admin.ui.components.MiniDato
@@ -100,7 +101,7 @@ fun UsuarioDetalleScreen(
             },
             alRefrescar = { vm.cargar() }
         )
-        ContenidoCarga(vm.estado, alReintentar = { vm.cargar() }) { u ->
+        ContenidoCarga(vm.estado, alReintentar = { vm.cargar() }, cargando = { SkeletonDetalle() }) { u ->
             ContenidoDetalle(u, vm)
         }
     }

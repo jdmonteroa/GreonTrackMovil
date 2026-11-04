@@ -43,6 +43,7 @@ import com.greontrack.admin.data.UsuarioResumen
 import com.greontrack.admin.ui.UsuariosViewModel
 import com.greontrack.admin.ui.components.Avatar
 import com.greontrack.admin.ui.components.ContenidoCarga
+import com.greontrack.admin.ui.components.SkeletonLista
 import com.greontrack.admin.ui.components.GreonTopBar
 import com.greontrack.admin.ui.components.RolChip
 import com.greontrack.admin.ui.components.Vacio
@@ -61,7 +62,7 @@ fun UsuariosScreen(
     Column(Modifier.fillMaxSize()) {
         GreonTopBar(titulo = "Usuarios", subtitulo = "Cuentas registradas en la app web", alRefrescar = { vm.cargar() })
 
-        ContenidoCarga(vm.estado, alReintentar = { vm.cargar() }) { usuarios ->
+        ContenidoCarga(vm.estado, alReintentar = { vm.cargar() }, cargando = { SkeletonLista() }) { usuarios ->
             val texto = vm.busqueda.trim()
             val filtrados = usuarios.filter { u ->
                 (vm.filtroRol == null || u.role == vm.filtroRol) &&

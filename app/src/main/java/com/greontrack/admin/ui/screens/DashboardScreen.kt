@@ -45,6 +45,7 @@ import com.greontrack.admin.data.DashboardStats
 import com.greontrack.admin.ui.DashboardViewModel
 import com.greontrack.admin.ui.components.BarrasHorizontales
 import com.greontrack.admin.ui.components.ContenidoCarga
+import com.greontrack.admin.ui.components.SkeletonDashboard
 import com.greontrack.admin.ui.components.GraficaBarras
 import com.greontrack.admin.ui.components.GraficaLinea
 import com.greontrack.admin.ui.components.GreonTopBar
@@ -61,7 +62,7 @@ fun DashboardScreen(vm: DashboardViewModel = viewModel()) {
 
     Column(Modifier.fillMaxSize()) {
         GreonTopBar(titulo = "Panel", subtitulo = "Resumen general de GreonTrack", alRefrescar = { vm.cargar() })
-        ContenidoCarga(vm.estado, alReintentar = { vm.cargar() }) { datos ->
+        ContenidoCarga(vm.estado, alReintentar = { vm.cargar() }, cargando = { SkeletonDashboard() }) { datos ->
             PullToRefreshBox(
                 isRefreshing = vm.refrescando,
                 onRefresh = { vm.cargar() },
