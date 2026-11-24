@@ -675,17 +675,3 @@ fun <T> ContenidoCarga(
         }
     }
 }
-
-@Composable
-fun LeyendaPunto(color: Color, texto: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            Modifier
-                .size(8.dp)
-                .clip(CircleShape)
-                .background(color)
-        )
-        Spacer(Modifier.width(6.dp))
-        Text(texto, style = MaterialTheme.typography.labelSmall, color = Greon.TextoSuave)
-    }
-}

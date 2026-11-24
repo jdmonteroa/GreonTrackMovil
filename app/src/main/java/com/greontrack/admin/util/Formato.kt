@@ -7,6 +7,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToLong
 
 /** Utilidades para mostrar numeros y fechas en español de Mexico. */
 object Formato {
@@ -37,7 +38,7 @@ object Formato {
     fun compacto(d: Double): String = when {
         d >= 1_000_000 -> decimal(d / 1_000_000, 1) + " M"
         d >= 10_000 -> decimal(d / 1_000, 1) + " mil"
-        d >= 100 -> entero(Math.round(d))
+        d >= 100 -> entero(d.roundToLong())
         else -> decimal(d, 1)
     }
 

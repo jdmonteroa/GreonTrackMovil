@@ -34,13 +34,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.greontrack.admin.data.DispositivoAdmin
 import com.greontrack.admin.ui.DispositivosViewModel
 import com.greontrack.admin.ui.components.ContenidoCarga
-import com.greontrack.admin.ui.components.SkeletonLista
 import com.greontrack.admin.ui.components.Etiqueta
 import com.greontrack.admin.ui.components.GreonTopBar
 import com.greontrack.admin.ui.components.MiniDato
+import com.greontrack.admin.ui.components.SkeletonLista
 import com.greontrack.admin.ui.components.Vacio
 import com.greontrack.admin.ui.theme.Greon
 import com.greontrack.admin.util.Formato
+import kotlin.math.roundToLong
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -138,7 +139,7 @@ private fun FilaDispositivo(d: DispositivoAdmin, alTocarDueno: () -> Unit) {
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "${d.tipo} · ${Formato.entero(Math.round(d.consumoWatts))} W",
+                        "${d.tipo} · ${Formato.entero(d.consumoWatts.roundToLong())} W",
                         style = MaterialTheme.typography.bodySmall,
                         color = Greon.TextoSuave,
                         maxLines = 1,

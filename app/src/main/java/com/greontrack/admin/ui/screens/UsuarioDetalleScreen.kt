@@ -20,8 +20,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.AcUnit
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Computer
 import androidx.compose.material.icons.rounded.Kitchen
 import androidx.compose.material.icons.rounded.Lightbulb
@@ -29,13 +29,13 @@ import androidx.compose.material.icons.rounded.LocalLaundryService
 import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Microwave
 import androidx.compose.material.icons.rounded.Router
+import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.Sensors
 import androidx.compose.material.icons.rounded.Smartphone
 import androidx.compose.material.icons.rounded.Speaker
 import androidx.compose.material.icons.rounded.SportsEsports
-import androidx.compose.material.icons.rounded.Tv
-import androidx.compose.material.icons.rounded.Schedule
-import androidx.compose.material.icons.rounded.Sensors
 import androidx.compose.material.icons.rounded.TouchApp
+import androidx.compose.material.icons.rounded.Tv
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -69,16 +69,17 @@ import com.greontrack.admin.data.UsuarioDetalle
 import com.greontrack.admin.ui.UsuarioDetalleViewModel
 import com.greontrack.admin.ui.components.Avatar
 import com.greontrack.admin.ui.components.ContenidoCarga
-import com.greontrack.admin.ui.components.SkeletonDetalle
 import com.greontrack.admin.ui.components.Etiqueta
 import com.greontrack.admin.ui.components.GreonTopBar
 import com.greontrack.admin.ui.components.MiniDato
 import com.greontrack.admin.ui.components.RolChip
+import com.greontrack.admin.ui.components.SkeletonDetalle
 import com.greontrack.admin.ui.components.Tarjeta
 import com.greontrack.admin.ui.components.Vacio
 import com.greontrack.admin.ui.components.colorRol
 import com.greontrack.admin.ui.theme.Greon
 import com.greontrack.admin.util.Formato
+import kotlin.math.roundToLong
 
 @Composable
 fun UsuarioDetalleScreen(
@@ -292,7 +293,7 @@ private fun FilaDispositivoUsuario(d: DispositivoUsuario) {
             Column(Modifier.weight(1f)) {
                 Text(d.nombre, style = MaterialTheme.typography.titleSmall, color = Greon.Texto, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
-                    "${d.tipo.replaceFirstChar { it.uppercase() }} · ${Formato.entero(Math.round(d.consumoWatts))} W",
+                    "${d.tipo.replaceFirstChar { it.uppercase() }} · ${Formato.entero(d.consumoWatts.roundToLong())} W",
                     style = MaterialTheme.typography.bodySmall,
                     color = Greon.TextoSuave
                 )

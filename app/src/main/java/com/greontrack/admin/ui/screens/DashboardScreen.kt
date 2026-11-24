@@ -45,11 +45,11 @@ import com.greontrack.admin.data.DashboardStats
 import com.greontrack.admin.ui.DashboardViewModel
 import com.greontrack.admin.ui.components.BarrasHorizontales
 import com.greontrack.admin.ui.components.ContenidoCarga
-import com.greontrack.admin.ui.components.SkeletonDashboard
 import com.greontrack.admin.ui.components.GraficaBarras
 import com.greontrack.admin.ui.components.GraficaLinea
 import com.greontrack.admin.ui.components.GreonTopBar
 import com.greontrack.admin.ui.components.KpiCard
+import com.greontrack.admin.ui.components.SkeletonDashboard
 import com.greontrack.admin.ui.components.Tarjeta
 import com.greontrack.admin.ui.components.Vacio
 import com.greontrack.admin.ui.components.aparecer
@@ -57,6 +57,7 @@ import com.greontrack.admin.ui.components.rememberEntradaEscalonada
 import com.greontrack.admin.ui.components.rememberProgresoContador
 import com.greontrack.admin.ui.theme.Greon
 import com.greontrack.admin.util.Formato
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -152,7 +153,7 @@ private fun ContenidoDashboard(d: DashboardStats) {
                     etiquetasGlobo = d.registrosPorDia.map { Formato.diaMedio(it.dia) },
                     color = Greon.Verde,
                     formatoValor = { v ->
-                        val n = Math.round(v).toInt()
+                        val n = v.roundToInt()
                         if (n == 1) "1 usuario nuevo" else "${Formato.entero(n)} usuarios nuevos"
                     }
                 )
@@ -267,4 +268,4 @@ private data class Kpi(
 )
 
 private fun porcentaje(parte: Int, total: Int): String =
-    if (total <= 0) "0%" else "${Math.round(parte * 100.0 / total)}%"
+    if (total <= 0) "0%" else "${(parte * 100.0 / total).roundToInt()}%"
