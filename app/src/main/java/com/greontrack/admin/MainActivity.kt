@@ -77,7 +77,7 @@ class MainActivity : ComponentActivity() {
         // El splash se queda mientras se revisa si hay una sesion guardada
         splash.setKeepOnScreenCondition { sesion.estado == EstadoSesion.Iniciando }
 
-        // Al salir, el logo crece un poco y todo se desvanece
+        // Al salir, el logo crece un poco y se desvanece
         splash.setOnExitAnimationListener { vista ->
             runCatching {
                 vista.iconView.animate()
