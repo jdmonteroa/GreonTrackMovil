@@ -292,7 +292,8 @@ fun GraficaBarras(
     color: Color,
     modifier: Modifier = Modifier,
     etiquetasGlobo: List<String> = etiquetas,
-    formatoValor: (Double) -> String = { Formato.decimal(it, 1) }
+    formatoValor: (Double) -> String = { Formato.decimal(it, 1) },
+    altura: Dp = 150.dp
 ) {
     val maximo = (valores.maxOrNull() ?: 0.0).coerceAtLeast(1.0)
     val lineaGuia = Greon.Texto.copy(alpha = 0.08f)
@@ -305,7 +306,7 @@ fun GraficaBarras(
         Canvas(
             Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .height(altura)
                 .tocarParaSeleccionar(seleccion, valores.size) {
                     haptico.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 }
@@ -353,7 +354,8 @@ fun GraficaLinea(
     color: Color,
     modifier: Modifier = Modifier,
     etiquetasGlobo: List<String> = etiquetas,
-    formatoValor: (Double) -> String = { Formato.decimal(it, 1) }
+    formatoValor: (Double) -> String = { Formato.decimal(it, 1) },
+    altura: Dp = 150.dp
 ) {
     val maximo = (valores.maxOrNull() ?: 0.0).coerceAtLeast(0.001)
     val lineaGuia = Greon.Texto.copy(alpha = 0.08f)
@@ -367,7 +369,7 @@ fun GraficaLinea(
         Canvas(
             Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .height(altura)
                 .padding(top = 6.dp)
                 .tocarParaSeleccionar(seleccion, valores.size) {
                     haptico.performHapticFeedback(HapticFeedbackType.TextHandleMove)

@@ -80,7 +80,12 @@ data class UsuarioDetalle(
     @SerialName("registros_uso") val registrosUso: Int = 0,
     val recomendaciones: Int = 0,
     @SerialName("sniffer_ultimo_sondeo") val snifferUltimoSondeo: String? = null,
-    val dispositivos: List<DispositivoUsuario> = emptyList()
+    val dispositivos: List<DispositivoUsuario> = emptyList(),
+    // Vienen de la version nueva de admin_usuario_detalle. Si son null,
+    // falta volver a ejecutar supabase/admin_setup.sql en Supabase.
+    @SerialName("kwh_por_dia") val kwhPorDia: List<PuntoDia>? = null,
+    @SerialName("ranking_consumo") val rankingConsumo: Int? = null,
+    @SerialName("usuarios_total") val usuariosTotal: Int = 0
 )
 
 @Serializable

@@ -204,28 +204,15 @@ fun SkeletonDetalle() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // Encabezado con degradado
+        Hueso(b, Modifier.fillMaxWidth().height(148.dp), RoundedCornerShape(20.dp))
+        // Mini grafica de consumo
         TarjetaFantasma {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Hueso(b, Modifier.size(60.dp), CircleShape)
-                Spacer(Modifier.width(14.dp))
-                Column(Modifier.weight(1f)) {
-                    Hueso(b, Modifier.fillMaxWidth(0.6f).height(18.dp))
-                    Spacer(Modifier.height(8.dp))
-                    Hueso(b, Modifier.fillMaxWidth(0.8f).height(11.dp))
-                    Spacer(Modifier.height(8.dp))
-                    Hueso(b, Modifier.width(60.dp).height(20.dp), RoundedCornerShape(50))
-                }
-            }
-            Spacer(Modifier.height(18.dp))
-            repeat(4) {
-                Row(Modifier.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Hueso(b, Modifier.size(18.dp), CircleShape)
-                    Spacer(Modifier.width(10.dp))
-                    Hueso(b, Modifier.width(100.dp).height(11.dp))
-                    Spacer(Modifier.weight(1f))
-                    Hueso(b, Modifier.width(80.dp).height(11.dp))
-                }
-            }
+            Hueso(b, Modifier.width(150.dp).height(14.dp))
+            Spacer(Modifier.height(6.dp))
+            Hueso(b, Modifier.width(210.dp).height(10.dp))
+            Spacer(Modifier.height(14.dp))
+            Hueso(b, Modifier.fillMaxWidth().height(110.dp), RoundedCornerShape(10.dp))
         }
         TarjetaFantasma {
             Hueso(b, Modifier.width(90.dp).height(14.dp))

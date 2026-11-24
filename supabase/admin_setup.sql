@@ -149,7 +149,9 @@ security definer
 set search_path = public
 as $$
 declare
-  r json;
+  v_tz  text := 'America/Mexico_City';
+  v_hoy date := (now() at time zone 'America/Mexico_City')::date;
+  r     json;
 begin
   if not public.is_admin() then
     raise exception 'Acceso solo para administradores' using errcode = '42501';
@@ -172,6 +174,33 @@ begin
                       where d.usuario_id = p.id),
     'recomendaciones', (select count(*) from recomendaciones rc where rc.usuario_id = p.id),
     'sniffer_ultimo_sondeo', (select s.ultimo_sondeo from sniffer_estado s where s.usuario_id = p.id),
+
+    -- Consumo de este usuario en los ultimos 14 dias (para la mini grafica)
+    'kwh_por_dia', (
+      select coalesce(json_agg(json_build_object(
+               'dia', g.d::date,
+               'total', (select coalesce(sum(c.kwh), 0) from calculos c
+                         where c.usuario_id = p.id
+                           and (c.fecha at time zone v_tz)::date = g.d::date)
+             ) order by g.d), '[]'::json)
+      from generate_series((v_hoy - 13)::timestamp, v_hoy::timestamp, interval '1 day') as g(d)
+    ),
+
+    -- Lugar del usuario entre todos por kWh registrados (1 = el que mas consume)
+    'ranking_consumo', (
+      select x.pos
+      from (
+        select q.id, rank() over (order by q.kwh desc) as pos
+        from (
+          select p2.id,
+                 coalesce((select sum(c2.kwh) from calculos c2 where c2.usuario_id = p2.id), 0) as kwh
+          from perfiles p2
+        ) q
+      ) x
+      where x.id = p.id
+    ),
+    'usuarios_total', (select count(*) from perfiles),
+
     'dispositivos', (
       select coalesce(json_agg(json_build_object(
                'id', d.id,

@@ -1,6 +1,7 @@
 package com.greontrack.admin.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,17 +18,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.AcUnit
+import androidx.compose.material.icons.rounded.AdminPanelSettings
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Computer
+import androidx.compose.material.icons.rounded.EmojiEvents
+import androidx.compose.material.icons.rounded.Insights
 import androidx.compose.material.icons.rounded.Kitchen
+import androidx.compose.material.icons.rounded.Leaderboard
 import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material.icons.rounded.LocalLaundryService
 import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Microwave
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Router
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Sensors
@@ -40,10 +47,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -58,8 +63,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -70,13 +77,15 @@ import com.greontrack.admin.ui.UsuarioDetalleViewModel
 import com.greontrack.admin.ui.components.Avatar
 import com.greontrack.admin.ui.components.ContenidoCarga
 import com.greontrack.admin.ui.components.Etiqueta
+import com.greontrack.admin.ui.components.GraficaLinea
 import com.greontrack.admin.ui.components.GreonTopBar
 import com.greontrack.admin.ui.components.MiniDato
-import com.greontrack.admin.ui.components.RolChip
 import com.greontrack.admin.ui.components.SkeletonDetalle
 import com.greontrack.admin.ui.components.Tarjeta
 import com.greontrack.admin.ui.components.Vacio
+import com.greontrack.admin.ui.components.aparecer
 import com.greontrack.admin.ui.components.colorRol
+import com.greontrack.admin.ui.components.rememberEntradaEscalonada
 import com.greontrack.admin.ui.theme.Greon
 import com.greontrack.admin.util.Formato
 import kotlin.math.roundToLong
@@ -120,34 +129,40 @@ fun UsuarioDetalleScreen(
 @Composable
 private fun ContenidoDetalle(u: UsuarioDetalle, vm: UsuarioDetalleViewModel) {
     val abajo = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    // Las tarjetas aparecen una tras otra, igual que en el Panel
+    val entrada = rememberEntradaEscalonada()
 
     LazyColumn(
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp + abajo),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxSize()
     ) {
-        // Encabezado
+        // Encabezado con degradado verde, rol y ranking
+        item { EncabezadoUsuario(u, Modifier.aparecer(entrada, 0)) }
+
+        // Mini grafica de consumo de los ultimos 14 dias
+        item { TarjetaConsumo(u, Modifier.aparecer(entrada, 1)) }
+
+        // Numeros del usuario
         item {
-            Tarjeta {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Avatar(u.nombre, colorRol(u.role), tamano = 60.dp)
-                    Spacer(Modifier.width(14.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            u.nombre.ifBlank { "Sin nombre" },
-                            style = MaterialTheme.typography.titleLarge,
-                            color = Greon.TextoTitulo,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(u.email ?: "—", style = MaterialTheme.typography.bodyMedium, color = Greon.TextoSuave)
-                        Spacer(Modifier.height(6.dp))
-                        RolChip(u.role)
-                    }
+            Tarjeta(modifier = Modifier.aparecer(entrada, 2), titulo = "Actividad") {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    MiniDato(Formato.entero(u.dispositivos.size), "Dispositivos", Modifier.weight(1f))
+                    MiniDato(Formato.entero(u.registrosUso), "Registros", Modifier.weight(1f))
+                    MiniDato(Formato.entero(u.greonConsultas), "Consultas", Modifier.weight(1f))
                 }
-                Spacer(Modifier.height(14.dp))
-                HorizontalDivider(color = Greon.VerdeMuyClaro)
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    MiniDato(Formato.compacto(u.kwhTotal), "kWh", Modifier.weight(1f), Greon.Ambar)
+                    MiniDato(Formato.dinero(u.costoTotal), "Costo", Modifier.weight(1f), Greon.Verde)
+                    MiniDato(Formato.compacto(u.co2Total) + " kg", "CO₂", Modifier.weight(1f))
+                }
+            }
+        }
+
+        // Datos de la cuenta
+        item {
+            Tarjeta(modifier = Modifier.aparecer(entrada, 3), titulo = "Información") {
                 FilaInfo(Icons.Rounded.Schedule, "Registrado", Formato.fecha(u.createdAt))
                 FilaInfo(Icons.Rounded.TouchApp, "Último acceso", Formato.relativo(u.ultimoAcceso))
                 FilaInfo(
@@ -164,25 +179,8 @@ private fun ContenidoDetalle(u: UsuarioDetalle, vm: UsuarioDetalleViewModel) {
             }
         }
 
-        // Números del usuario
-        item {
-            Tarjeta(titulo = "Actividad") {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    MiniDato(Formato.entero(u.dispositivos.size), "Dispositivos", Modifier.weight(1f))
-                    MiniDato(Formato.entero(u.registrosUso), "Registros", Modifier.weight(1f))
-                    MiniDato(Formato.entero(u.greonConsultas), "Consultas", Modifier.weight(1f))
-                }
-                Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    MiniDato(Formato.compacto(u.kwhTotal), "kWh", Modifier.weight(1f), Greon.Ambar)
-                    MiniDato(Formato.dinero(u.costoTotal), "Costo", Modifier.weight(1f), Greon.Verde)
-                    MiniDato(Formato.compacto(u.co2Total) + " kg", "CO₂", Modifier.weight(1f))
-                }
-            }
-        }
-
         // Cambiar rol
-        item { CambiarRol(u, vm) }
+        item { CambiarRol(u, vm, Modifier.aparecer(entrada, 4)) }
 
         // Dispositivos
         item {
@@ -200,13 +198,132 @@ private fun ContenidoDetalle(u: UsuarioDetalle, vm: UsuarioDetalleViewModel) {
     }
 }
 
+/** Encabezado verde con el avatar, el correo, el rol y el lugar en consumo. */
 @Composable
-private fun CambiarRol(u: UsuarioDetalle, vm: UsuarioDetalleViewModel) {
+private fun EncabezadoUsuario(u: UsuarioDetalle, modifier: Modifier = Modifier) {
+    Column(
+        modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(Brush.linearGradient(listOf(Greon.Verde, Greon.VerdeOscuro)))
+            .padding(18.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Avatar(u.nombre, Color.White, tamano = 64.dp)
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    u.nombre.ifBlank { "Sin nombre" },
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.White,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    u.email ?: "—",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Greon.VerdeClaro,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+        Spacer(Modifier.height(14.dp))
+        Row(
+            Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            PildoraEncabezado(iconoRol(u.role), Formato.nombreRol(u.role))
+            val lugar = u.rankingConsumo
+            if (lugar != null) {
+                PildoraEncabezado(
+                    icono = if (lugar <= 3 && u.kwhTotal > 0) Icons.Rounded.EmojiEvents else Icons.Rounded.Leaderboard,
+                    texto = textoRanking(lugar, u.usuariosTotal, u.kwhTotal),
+                    destacada = lugar <= 3 && u.kwhTotal > 0
+                )
+            }
+        }
+    }
+}
+
+/** "N.º 1 en consumo", "Top 3 en consumo", "Lugar 12 de 40 en consumo"... */
+private fun textoRanking(lugar: Int, total: Int, kwh: Double): String = when {
+    kwh <= 0.0 -> "Sin consumo registrado"
+    lugar == 1 -> "N.º 1 en consumo"
+    lugar <= 3 -> "Top 3 en consumo"
+    lugar <= 10 -> "Top 10 en consumo"
+    else -> "Lugar $lugar de $total en consumo"
+}
+
+private fun iconoRol(rol: String): ImageVector = when (rol) {
+    "admin" -> Icons.Rounded.AdminPanelSettings
+    "analitico" -> Icons.Rounded.Insights
+    else -> Icons.Rounded.Person
+}
+
+/** Etiqueta redondeada para el encabezado verde. La destacada va en ambar. */
+@Composable
+private fun PildoraEncabezado(icono: ImageVector, texto: String, destacada: Boolean = false) {
+    val fondo = if (destacada) Greon.Ambar else Color.White.copy(alpha = 0.16f)
+    val color = if (destacada) Greon.VerdeOscuro2 else Color.White
+    Row(
+        Modifier
+            .clip(RoundedCornerShape(50))
+            .background(fondo)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icono, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(texto, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = color)
+    }
+}
+
+/** Mini grafica con los kWh por dia de este usuario. */
+@Composable
+private fun TarjetaConsumo(u: UsuarioDetalle, modifier: Modifier = Modifier) {
+    Tarjeta(
+        modifier = modifier,
+        titulo = "Consumo reciente",
+        descripcion = "kWh por día · últimos 14 días · toca un punto"
+    ) {
+        val dias = u.kwhPorDia
+        if (dias == null) {
+            // La funcion de Supabase todavia es la version anterior
+            Vacio(
+                titulo = "Falta actualizar Supabase",
+                texto = "Vuelve a ejecutar supabase/admin_setup.sql en el SQL Editor para ver esta gráfica.",
+                compacto = true
+            )
+        } else if (dias.all { it.total <= 0.0 }) {
+            Vacio("Este usuario no registró consumo en estos 14 días.", compacto = true)
+        } else {
+            Text(
+                "${Formato.decimal(dias.sumOf { it.total }, 1)} kWh en el periodo",
+                style = MaterialTheme.typography.labelMedium,
+                color = Greon.Ambar
+            )
+            Spacer(Modifier.height(8.dp))
+            GraficaLinea(
+                valores = dias.map { it.total },
+                etiquetas = dias.map { Formato.diaCorto(it.dia) },
+                etiquetasGlobo = dias.map { Formato.diaMedio(it.dia) },
+                color = Greon.Ambar,
+                formatoValor = { "${Formato.decimal(it, 2)} kWh" },
+                altura = 120.dp
+            )
+        }
+    }
+}
+
+@Composable
+private fun CambiarRol(u: UsuarioDetalle, vm: UsuarioDetalleViewModel, modifier: Modifier = Modifier) {
     var elegido by remember(u.role) { mutableStateOf(u.role) }
     var confirmar by remember { mutableStateOf(false) }
     val esYoMismo = AdminRepository.idActual() == u.id
 
     Tarjeta(
+        modifier = modifier,
         titulo = "Rol del usuario",
         descripcion = "Admin: entra a esta app. Analítico: acceso a reportes. General: usuario normal."
     ) {
