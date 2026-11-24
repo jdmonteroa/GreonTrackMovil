@@ -631,15 +631,14 @@ fun Cargando(texto: String = "Cargando…") {
 fun ErrorEstado(mensaje: String, alReintentar: () -> Unit) {
     val sinConexion = mensaje.contains("conexión", ignoreCase = true) ||
         mensaje.contains("internet", ignoreCase = true)
-    // Centrado en la pantalla, pero con scroll si no cabe (por ejemplo, en horizontal)
-    BoxWithConstraints(Modifier.fillMaxSize()) {
+    // Centrado en la pantalla, pero con scroll si no cabe (por ejemplo, en horizontal):
+    // el Box centra la columna y la columna solo hace scroll si no cabe.
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
             Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .heightIn(min = maxHeight)
                 .padding(32.dp),
-            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             ContenidoError(sinConexion, mensaje, alReintentar)
