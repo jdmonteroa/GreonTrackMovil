@@ -25,19 +25,13 @@ import kotlinx.coroutines.delay
 /** Tiempo entre que aparece un elemento y el siguiente. */
 private const val RETRASO_ENTRE_ELEMENTOS = 70L
 
-/** Duración del desvanecido + deslizamiento de cada elemento. */
+/** Duracion del desvanecido + deslizamiento de cada elemento. */
 private const val DURACION_ENTRADA = 450
 
-/**
- * Coordina la entrada "en cascada" de una pantalla.
- *
- * Solo se anima la primera vez que se abre la pantalla: si vas a otra
- * pestaña y regresas, todo aparece directo para no marear.
- */
 class EntradaEscalonada internal constructor(val animar: Boolean) {
     internal val inicio: Long = SystemClock.uptimeMillis()
 
-    /** Elementos que ya hicieron su animación (para no repetirla al hacer scroll). */
+    /** Elementos que ya hicieron su animacion (para no repetirla al hacer scroll). */
     internal val vistos = mutableSetOf<Int>()
 }
 
@@ -51,7 +45,7 @@ fun rememberEntradaEscalonada(): EntradaEscalonada {
 
 /**
  * Hace que el elemento aparezca con desvanecido y deslizamiento.
- * `indice` es su posición en la pantalla: 0 aparece primero, 1 después, etc.
+ * indice es su posicion en la pantalla: 0 aparece primero, 1 despues, etc.
  */
 @Composable
 fun Modifier.aparecer(entrada: EntradaEscalonada, indice: Int): Modifier {
@@ -77,7 +71,7 @@ fun Modifier.aparecer(entrada: EntradaEscalonada, indice: Int): Modifier {
 }
 
 /**
- * Avanza de 0 a 1 una sola vez. Se usa para que los números de los KPI
+ * Avanza de 0 a 1 una sola vez. Se usa para que los numeros de los KPI
  * "cuenten" desde 0 hasta su valor: valor mostrado = valor real × progreso.
  */
 @Composable
