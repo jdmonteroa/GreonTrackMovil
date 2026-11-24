@@ -52,6 +52,9 @@ import com.greontrack.admin.ui.components.GreonTopBar
 import com.greontrack.admin.ui.components.KpiCard
 import com.greontrack.admin.ui.components.Tarjeta
 import com.greontrack.admin.ui.components.Vacio
+import com.greontrack.admin.ui.components.aparecer
+import com.greontrack.admin.ui.components.rememberEntradaEscalonada
+import com.greontrack.admin.ui.components.rememberProgresoContador
 import com.greontrack.admin.ui.theme.Greon
 import com.greontrack.admin.util.Formato
 
@@ -76,46 +79,72 @@ fun DashboardScreen(vm: DashboardViewModel = viewModel()) {
 
 @Composable
 private fun ContenidoDashboard(d: DashboardStats) {
-    // Tarjetas KPI: (icono, etiqueta, valor, color, detalle)
+    // Cómo se muestra cada número mientras "cuenta"
+    val entero: (Double) -> String = { Formato.entero(it) }
+    val compacto: (Double) -> String = { Formato.compacto(it) }
+    val dinero: (Double) -> String = { Formato.dinero(it) }
+    val kilos: (Double) -> String = { Formato.compacto(it) + " kg" }
+
+    // Tarjetas KPI: (icono, etiqueta, número, formato, color, detalle)
     val kpis = listOf(
-        Kpi(Icons.Rounded.Group, "Usuarios registrados", Formato.entero(d.usuariosTotal), Greon.Verde,
+        Kpi(Icons.Rounded.Group, "Usuarios registrados", d.usuariosTotal.toDouble(), entero, Greon.Verde,
             "+${Formato.entero(d.usuariosNuevos7d)} esta semana"),
-        Kpi(Icons.Rounded.PersonAdd, "Activos (7 días)", Formato.entero(d.usuariosActivos7d), Greon.Azul,
+        Kpi(Icons.Rounded.PersonAdd, "Activos (7 días)", d.usuariosActivos7d.toDouble(), entero, Greon.Azul,
             porcentaje(d.usuariosActivos7d, d.usuariosTotal) + " del total"),
-        Kpi(Icons.Rounded.Devices, "Dispositivos", Formato.entero(d.dispositivosTotal), Greon.Turquesa,
+        Kpi(Icons.Rounded.Devices, "Dispositivos", d.dispositivosTotal.toDouble(), entero, Greon.Turquesa,
             "${Formato.entero(d.dispositivosAgente)} detectados por agente"),
-        Kpi(Icons.Rounded.History, "Registros de uso", Formato.entero(d.registrosUsoTotal), Greon.Morado, null),
-        Kpi(Icons.Rounded.Bolt, "kWh registrados", Formato.compacto(d.kwhTotal), Greon.Ambar,
+        Kpi(Icons.Rounded.History, "Registros de uso", d.registrosUsoTotal.toDouble(), entero, Greon.Morado, null),
+        Kpi(Icons.Rounded.Bolt, "kWh registrados", d.kwhTotal, compacto, Greon.Ambar,
             "${Formato.compacto(d.kwh30d)} kWh en 30 días"),
-        Kpi(Icons.Rounded.Savings, "Costo estimado", Formato.dinero(d.costoTotal), Greon.Verde, "MXN acumulado"),
-        Kpi(Icons.Rounded.Eco, "CO₂ estimado", Formato.compacto(d.co2Total) + " kg", Greon.VerdeOscuro, null),
-        Kpi(Icons.Rounded.Forum, "Consultas a Greon", Formato.entero(d.consultasGreonTotal), Greon.Azul, null),
-        Kpi(Icons.Rounded.Sensors, "Sniffers activos", Formato.entero(d.sniffersActivos), Greon.Turquesa,
+        Kpi(Icons.Rounded.Savings, "Costo estimado", d.costoTotal, dinero, Greon.Verde, "MXN acumulado"),
+        Kpi(Icons.Rounded.Eco, "CO₂ estimado", d.co2Total, kilos, Greon.VerdeOscuro, null),
+        Kpi(Icons.Rounded.Forum, "Consultas a Greon", d.consultasGreonTotal.toDouble(), entero, Greon.Azul, null),
+        Kpi(Icons.Rounded.Sensors, "Sniffers activos", d.sniffersActivos.toDouble(), entero, Greon.Turquesa,
             "Últimas 24 horas"),
-        Kpi(Icons.Rounded.TipsAndUpdates, "Sugerencias pendientes", Formato.entero(d.sugeridosPendientes), Greon.Ambar,
-            "${Formato.entero(d.recomendacionesTotal)} recomendaciones")
+        Kpi(Icons.Rounded.TipsAndUpdates, "Sugerencias pendientes", d.sugeridosPendientes.toDouble(), entero,
+            Greon.Ambar, "${Formato.entero(d.recomendacionesTotal)} recomendaciones")
     )
+
+    // Animación de entrada: banner (0), KPIs (1 a 10) y luego las tarjetas de abajo
+    val entrada = rememberEntradaEscalonada()
+    val progresoKpi = rememberProgresoContador(entrada)
+    val primeraTarjeta = 1 + kpis.size
 
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxSize()
     ) {
-        item { Bienvenida(d) }
+        item { Bienvenida(d, Modifier.aparecer(entrada, 0)) }
 
         val filas = kpis.chunked(2)
         items(filas.size) { fila ->
             val par = filas[fila]
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                par.forEach { k ->
-                    KpiCard(k.icono, k.etiqueta, k.valor, k.color, Modifier.weight(1f), k.detalle)
+                par.forEachIndexed { columna, k ->
+                    KpiCard(
+                        icono = k.icono,
+                        etiqueta = k.etiqueta,
+                        numero = k.numero,
+                        formato = k.formato,
+                        acento = k.color,
+                        modifier = Modifier
+                            .weight(1f)
+                            .aparecer(entrada, 1 + fila * 2 + columna),
+                        detalle = k.detalle,
+                        progreso = { progresoKpi.value }
+                    )
                 }
                 if (par.size == 1) Spacer(Modifier.weight(1f))
             }
         }
 
         item {
-            Tarjeta(titulo = "Nuevos usuarios", descripcion = "Registros por día · últimos 14 días") {
+            Tarjeta(
+                modifier = Modifier.aparecer(entrada, primeraTarjeta),
+                titulo = "Nuevos usuarios",
+                descripcion = "Registros por día · últimos 14 días"
+            ) {
                 if (d.registrosPorDia.isEmpty()) Vacio("Sin datos")
                 else GraficaBarras(
                     valores = d.registrosPorDia.map { it.total },
@@ -126,7 +155,11 @@ private fun ContenidoDashboard(d: DashboardStats) {
         }
 
         item {
-            Tarjeta(titulo = "Consumo registrado", descripcion = "kWh por día · últimos 14 días") {
+            Tarjeta(
+                modifier = Modifier.aparecer(entrada, primeraTarjeta + 1),
+                titulo = "Consumo registrado",
+                descripcion = "kWh por día · últimos 14 días"
+            ) {
                 if (d.kwhPorDia.isEmpty()) Vacio("Sin datos")
                 else {
                     val total = d.kwhPorDia.sumOf { it.total }
@@ -146,14 +179,18 @@ private fun ContenidoDashboard(d: DashboardStats) {
         }
 
         item {
-            Tarjeta(titulo = "Usuarios por rol") {
+            Tarjeta(modifier = Modifier.aparecer(entrada, primeraTarjeta + 2), titulo = "Usuarios por rol") {
                 if (d.roles.isEmpty()) Vacio("Sin usuarios")
                 else BarrasHorizontales(d.roles.map { Formato.nombreRol(it.nombre ?: "general") to it.total })
             }
         }
 
         item {
-            Tarjeta(titulo = "Dispositivos por tipo", descripcion = "Los 6 tipos más registrados") {
+            Tarjeta(
+                modifier = Modifier.aparecer(entrada, primeraTarjeta + 3),
+                titulo = "Dispositivos por tipo",
+                descripcion = "Los 6 tipos más registrados"
+            ) {
                 if (d.dispositivosPorTipo.isEmpty()) Vacio("Aún no hay dispositivos")
                 else BarrasHorizontales(
                     d.dispositivosPorTipo.map { (it.nombre ?: "Otro").replaceFirstChar { c -> c.uppercase() } to it.total }
@@ -162,7 +199,7 @@ private fun ContenidoDashboard(d: DashboardStats) {
         }
 
         item {
-            Tarjeta(titulo = "Parámetros de cálculo") {
+            Tarjeta(modifier = Modifier.aparecer(entrada, primeraTarjeta + 4), titulo = "Parámetros de cálculo") {
                 Text(
                     "Tarifa: ${d.tarifaKwh?.let { Formato.dinero(it) } ?: "—"} por kWh",
                     style = MaterialTheme.typography.bodyMedium
@@ -183,9 +220,9 @@ private fun ContenidoDashboard(d: DashboardStats) {
 }
 
 @Composable
-private fun Bienvenida(d: DashboardStats) {
+private fun Bienvenida(d: DashboardStats, modifier: Modifier = Modifier) {
     Box(
-        Modifier
+        modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(Brush.linearGradient(listOf(Greon.Verde, Greon.VerdeOscuro)))
@@ -199,7 +236,7 @@ private fun Bienvenida(d: DashboardStats) {
                 Spacer(Modifier.height(6.dp))
                 Text(
                     "Hoy GreonTrack tiene ${Formato.entero(d.usuariosTotal)} usuarios que han " +
-                        "registrado ${Formato.compacto(d.kwhTotal)} kWh de consumo.",
+                            "registrado ${Formato.compacto(d.kwhTotal)} kWh de consumo.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White.copy(alpha = 0.9f)
                 )
@@ -216,7 +253,8 @@ private fun Bienvenida(d: DashboardStats) {
 private data class Kpi(
     val icono: androidx.compose.ui.graphics.vector.ImageVector,
     val etiqueta: String,
-    val valor: String,
+    val numero: Double,
+    val formato: (Double) -> String,
     val color: Color,
     val detalle: String?
 )

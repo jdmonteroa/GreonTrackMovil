@@ -143,14 +143,20 @@ fun Tarjeta(
     }
 }
 
+/**
+ * Tarjeta de indicador. El número "cuenta" desde 0 hasta [numero]
+ * conforme [progreso] avanza de 0 a 1 (ver rememberProgresoContador).
+ */
 @Composable
 fun KpiCard(
     icono: ImageVector,
     etiqueta: String,
-    valor: String,
+    numero: Double,
+    formato: (Double) -> String,
     acento: Color,
     modifier: Modifier = Modifier,
-    detalle: String? = null
+    detalle: String? = null,
+    progreso: () -> Float = { 1f }
 ) {
     Card(
         modifier = modifier,
@@ -170,7 +176,7 @@ fun KpiCard(
             }
             Spacer(Modifier.height(10.dp))
             Text(
-                valor,
+                formato(numero * progreso()),
                 style = MaterialTheme.typography.headlineSmall,
                 color = Greon.Texto,
                 maxLines = 1,
