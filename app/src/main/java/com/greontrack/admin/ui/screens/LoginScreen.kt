@@ -117,12 +117,12 @@ fun LoginScreen(
 
             Card(
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = Greon.Superficie),
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(Modifier.padding(22.dp)) {
-                    Text("Iniciar sesión", style = MaterialTheme.typography.headlineSmall, color = Greon.VerdeOscuro)
+                    Text("Iniciar sesión", style = MaterialTheme.typography.headlineSmall, color = Greon.TextoTitulo)
                     Text(
                         "Usa tu cuenta de GreonTrack con rol de administrador.",
                         style = MaterialTheme.typography.bodyMedium,
@@ -231,10 +231,10 @@ fun SinConfigurarScreen() {
     ) {
         Card(
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+            colors = CardDefaults.cardColors(containerColor = Greon.Superficie)
         ) {
             Column(Modifier.padding(22.dp)) {
-                Text("Falta configurar Supabase", style = MaterialTheme.typography.headlineSmall, color = Greon.VerdeOscuro)
+                Text("Falta configurar Supabase", style = MaterialTheme.typography.headlineSmall, color = Greon.TextoTitulo)
                 Spacer(Modifier.height(10.dp))
                 Text(
                     "Abre el archivo supabase.properties (en la carpeta raíz del proyecto) y " +

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -18,12 +19,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.rounded.AdminPanelSettings
 import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.BrightnessAuto
+import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Eco
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -39,13 +45,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.greontrack.admin.BuildConfig
 import com.greontrack.admin.data.Carga
 import com.greontrack.admin.data.Configuracion
+import com.greontrack.admin.data.PreferenciaTema
 import com.greontrack.admin.data.SupabaseProvider
+import com.greontrack.admin.data.Tema
 import com.greontrack.admin.ui.AjustesViewModel
 import com.greontrack.admin.ui.components.Avatar
 import com.greontrack.admin.ui.components.ContenidoCarga
@@ -108,6 +117,14 @@ fun AjustesScreen(
                 }
             }
 
+            // Apariencia: claro, oscuro o igual que el sistema
+            Tarjeta(
+                titulo = "Apariencia",
+                descripcion = "Elige si la app se ve clara, oscura o igual que tu celular."
+            ) {
+                SelectorTema()
+            }
+
             // Configuración global
             Tarjeta(
                 titulo = "Parámetros de cálculo",
@@ -164,6 +181,36 @@ fun AjustesScreen(
             text = { Text(texto) }
         )
     }
+}
+
+@Composable
+private fun SelectorTema() {
+    Row(
+        Modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Tema.entries.forEach { opcion ->
+            FilterChip(
+                selected = PreferenciaTema.tema == opcion,
+                onClick = { PreferenciaTema.cambiar(opcion) },
+                label = { Text(opcion.nombre) },
+                leadingIcon = {
+                    Icon(iconoTema(opcion), contentDescription = null, modifier = Modifier.size(18.dp))
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = Greon.Verde,
+                    selectedLabelColor = Color.White,
+                    selectedLeadingIconColor = Color.White
+                )
+            )
+        }
+    }
+}
+
+private fun iconoTema(tema: Tema): ImageVector = when (tema) {
+    Tema.Sistema -> Icons.Rounded.BrightnessAuto
+    Tema.Claro -> Icons.Rounded.LightMode
+    Tema.Oscuro -> Icons.Rounded.DarkMode
 }
 
 @Composable

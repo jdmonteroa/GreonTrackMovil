@@ -97,7 +97,7 @@ private fun ContenidoDashboard(d: DashboardStats) {
         Kpi(Icons.Rounded.Bolt, "kWh registrados", d.kwhTotal, compacto, Greon.Ambar,
             "${Formato.compacto(d.kwh30d)} kWh en 30 días"),
         Kpi(Icons.Rounded.Savings, "Costo estimado", d.costoTotal, dinero, Greon.Verde, "MXN acumulado"),
-        Kpi(Icons.Rounded.Eco, "CO₂ estimado", d.co2Total, kilos, Greon.VerdeOscuro, null),
+        Kpi(Icons.Rounded.Eco, "CO₂ estimado", d.co2Total, kilos, Greon.TextoTitulo, null),
         Kpi(Icons.Rounded.Forum, "Consultas a Greon", d.consultasGreonTotal.toDouble(), entero, Greon.Azul, null),
         Kpi(Icons.Rounded.Sensors, "Sniffers activos", d.sniffersActivos.toDouble(), entero, Greon.Turquesa,
             "Últimas 24 horas"),
@@ -105,7 +105,7 @@ private fun ContenidoDashboard(d: DashboardStats) {
             Greon.Ambar, "${Formato.entero(d.recomendacionesTotal)} recomendaciones")
     )
 
-    // Animación de entrada: banner (0), KPIs (1 a 10) y luego las tarjetas de abajo
+    // Animación de entrada: banner (0) luego las tarjetas de abajo
     val entrada = rememberEntradaEscalonada()
     val progresoKpi = rememberProgresoContador(entrada)
     val primeraTarjeta = 1 + kpis.size

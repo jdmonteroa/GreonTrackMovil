@@ -145,12 +145,12 @@ fun Tarjeta(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = Greon.Superficie),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.5.dp)
     ) {
         Column(Modifier.padding(16.dp)) {
             if (titulo != null) {
-                Text(titulo, style = MaterialTheme.typography.titleMedium, color = Greon.VerdeOscuro)
+                Text(titulo, style = MaterialTheme.typography.titleMedium, color = Greon.TextoTitulo)
                 if (descripcion != null) {
                     Text(descripcion, style = MaterialTheme.typography.bodySmall, color = Greon.TextoSuave)
                 }
@@ -179,7 +179,7 @@ fun KpiCard(
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = Greon.Superficie),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.5.dp)
     ) {
         Column(Modifier.padding(14.dp)) {
@@ -217,7 +217,7 @@ fun KpiCard(
 
 /** Dato pequeño: valor arriba, etiqueta abajo. */
 @Composable
-fun MiniDato(valor: String, etiqueta: String, modifier: Modifier = Modifier, color: Color = Greon.VerdeOscuro) {
+fun MiniDato(valor: String, etiqueta: String, modifier: Modifier = Modifier, color: Color = Greon.TextoTitulo) {
     Column(
         modifier
             .clip(RoundedCornerShape(12.dp))
@@ -292,7 +292,8 @@ fun GraficaBarras(
     formatoValor: (Double) -> String = { Formato.decimal(it, 1) }
 ) {
     val maximo = (valores.maxOrNull() ?: 0.0).coerceAtLeast(1.0)
-    val lineaGuia = Greon.VerdeOscuro.copy(alpha = 0.08f)
+    val lineaGuia = Greon.Texto.copy(alpha = 0.08f)
+    val fondoGlobo = if (Greon.EsOscuro) Greon.Verde else Greon.VerdeOscuro
     val seleccion = remember(valores) { mutableStateOf<Int?>(null) }
     val medidor = rememberTextMeasurer()
     val haptico = LocalHapticFeedback.current
@@ -331,6 +332,7 @@ fun GraficaBarras(
                 val alto = ((valores[elegido] / maximo).toFloat() * size.height).coerceAtLeast(3.dp.toPx())
                 dibujarGlobo(
                     medidor = medidor,
+                    fondo = fondoGlobo,
                     titulo = etiquetasGlobo.getOrElse(elegido) { "" },
                     valor = formatoValor(valores[elegido]),
                     ancla = Offset(elegido * espacio + espacio / 2f, size.height - alto)
@@ -351,7 +353,9 @@ fun GraficaLinea(
     formatoValor: (Double) -> String = { Formato.decimal(it, 1) }
 ) {
     val maximo = (valores.maxOrNull() ?: 0.0).coerceAtLeast(0.001)
-    val lineaGuia = Greon.VerdeOscuro.copy(alpha = 0.08f)
+    val lineaGuia = Greon.Texto.copy(alpha = 0.08f)
+    val fondoPunto = Greon.Superficie
+    val fondoGlobo = if (Greon.EsOscuro) Greon.Verde else Greon.VerdeOscuro
     val seleccion = remember(valores) { mutableStateOf<Int?>(null) }
     val medidor = rememberTextMeasurer()
     val haptico = LocalHapticFeedback.current
@@ -411,10 +415,10 @@ fun GraficaLinea(
                 if (i == elegido) {
                     // Punto elegido: más grande y con un halo
                     drawCircle(color.copy(alpha = 0.18f), radius = 10.dp.toPx(), center = p)
-                    drawCircle(Color.White, radius = 5.5.dp.toPx(), center = p)
+                    drawCircle(fondoPunto, radius = 5.5.dp.toPx(), center = p)
                     drawCircle(color, radius = 4.dp.toPx(), center = p)
                 } else {
-                    drawCircle(Color.White, radius = 4.dp.toPx(), center = p)
+                    drawCircle(fondoPunto, radius = 4.dp.toPx(), center = p)
                     drawCircle(color, radius = 2.6.dp.toPx(), center = p)
                 }
             }
@@ -422,6 +426,7 @@ fun GraficaLinea(
             if (elegido != null && elegido < n) {
                 dibujarGlobo(
                     medidor = medidor,
+                    fondo = fondoGlobo,
                     titulo = etiquetasGlobo.getOrElse(elegido) { "" },
                     valor = formatoValor(valores[elegido]),
                     ancla = puntos[elegido]
@@ -444,7 +449,7 @@ private fun Modifier.tocarParaSeleccionar(
     .pointerInput(seleccion, n) {
         detectTapGestures { posicion ->
             val i = indiceEnX(posicion.x, size.width.toFloat(), n) ?: return@detectTapGestures
-            // Tocar el mismo elemento otra vez oculta el globito
+            // Tocar el mismo elemento otra vez el globito
             seleccion.value = if (seleccion.value == i) null else i
         }
     }
@@ -476,11 +481,11 @@ private fun indiceEnX(x: Float, ancho: Float, n: Int): Int? {
  */
 private fun DrawScope.dibujarGlobo(
     medidor: TextMeasurer,
+    fondo: Color,
     titulo: String,
     valor: String,
     ancla: Offset
 ) {
-    val fondo = Greon.VerdeOscuro
     val texto = buildAnnotatedString {
         withStyle(SpanStyle(color = Greon.VerdeClaro, fontSize = 10.sp, fontWeight = FontWeight.Medium)) {
             append(titulo)
@@ -547,7 +552,7 @@ private fun EtiquetasEje(etiquetas: List<String>, elegido: Int? = null) {
                 textAlign = TextAlign.Center,
                 fontSize = 9.sp,
                 fontWeight = if (esElegida) FontWeight.Bold else FontWeight.Normal,
-                color = if (esElegida) Greon.VerdeOscuro else Greon.TextoSuave,
+                color = if (esElegida) Greon.TextoTitulo else Greon.TextoSuave,
                 maxLines = 1
             )
         }

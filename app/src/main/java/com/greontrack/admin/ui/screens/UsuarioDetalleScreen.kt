@@ -135,7 +135,7 @@ private fun ContenidoDetalle(u: UsuarioDetalle, vm: UsuarioDetalleViewModel) {
                         Text(
                             u.nombre.ifBlank { "Sin nombre" },
                             style = MaterialTheme.typography.titleLarge,
-                            color = Greon.VerdeOscuro,
+                            color = Greon.TextoTitulo,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -188,7 +188,7 @@ private fun ContenidoDetalle(u: UsuarioDetalle, vm: UsuarioDetalleViewModel) {
             Text(
                 "Dispositivos (${u.dispositivos.size})",
                 style = MaterialTheme.typography.titleMedium,
-                color = Greon.VerdeOscuro,
+                color = Greon.TextoTitulo,
                 modifier = Modifier.padding(top = 4.dp)
             )
         }

@@ -120,7 +120,7 @@ fun UsuariosScreen(
 private fun FilaUsuario(u: UsuarioResumen, alTocar: () -> Unit) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = Greon.Superficie),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -187,8 +187,8 @@ fun BuscadorYFiltros(
             singleLine = true,
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
+                focusedContainerColor = Greon.Superficie,
+                unfocusedContainerColor = Greon.Superficie,
                 unfocusedBorderColor = Color.Transparent
             ),
             modifier = Modifier
@@ -206,7 +206,7 @@ fun BuscadorYFiltros(
                     onClick = { alSeleccionar(valor) },
                     label = { Text(etiqueta) },
                     colors = FilterChipDefaults.filterChipColors(
-                        containerColor = Color.White,
+                        containerColor = Greon.Superficie,
                         selectedContainerColor = Greon.Verde,
                         selectedLabelColor = Color.White
                     )

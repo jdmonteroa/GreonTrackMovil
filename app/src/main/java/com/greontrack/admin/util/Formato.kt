@@ -77,7 +77,7 @@ object Formato {
 
     fun nombreRol(rol: String): String = when (rol) {
         "admin" -> "Admin"
-        "analitico" -> "Analitico"
+        "analitico" -> "Analítico"
         else -> "General"
     }
 

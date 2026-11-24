@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +27,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +45,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.greontrack.admin.data.PreferenciaTema
+import com.greontrack.admin.data.Tema
 import com.greontrack.admin.ui.EstadoSesion
 import com.greontrack.admin.ui.SesionViewModel
 import com.greontrack.admin.ui.screens.AjustesScreen
@@ -58,10 +62,31 @@ import com.greontrack.admin.ui.theme.GreonAdminTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Íconos de la barra de estado en blanco (la barra superior es verde oscuro)
+        PreferenciaTema.iniciar(this)
+        // Iconos de la barra de estado en blanco (la barra superior es verde oscuro)
         enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT))
         setContent {
-            GreonAdminTheme {
+            // Claro, oscuro o lo que diga el sistema (se elige en Ajustes)
+            val oscuro = when (PreferenciaTema.tema) {
+                Tema.Sistema -> isSystemInDarkTheme()
+                Tema.Claro -> false
+                Tema.Oscuro -> true
+            }
+
+            // Barra de estado siempre con iconos blancos (la barra superior es verde oscuro).
+            // La barra de navegacion de abajo cambia segun el tema.
+            DisposableEffect(oscuro) {
+                enableEdgeToEdge(
+                    statusBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
+                    navigationBarStyle = SystemBarStyle.auto(
+                        AndroidColor.TRANSPARENT,
+                        AndroidColor.TRANSPARENT
+                    ) { oscuro }
+                )
+                onDispose { }
+            }
+
+            GreonAdminTheme(oscuro = oscuro) {
                 GreonAdminApp()
             }
         }
@@ -124,7 +149,7 @@ private fun PanelAdmin(correo: String, alCerrarSesion: () -> Unit) {
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (mostrarBarra) {
-                NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
+                NavigationBar(containerColor = Greon.Superficie, tonalElevation = 0.dp) {
                     Seccion.entries.forEach { s ->
                         val seleccionada = destino?.hierarchy?.any { it.route == s.ruta } == true
                         NavigationBarItem(
@@ -139,9 +164,10 @@ private fun PanelAdmin(correo: String, alCerrarSesion: () -> Unit) {
                             icon = { Icon(s.icono, contentDescription = s.titulo) },
                             label = { Text(s.titulo) },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Greon.VerdeOscuro,
-                                selectedTextColor = Greon.VerdeOscuro,
-                                indicatorColor = Greon.VerdeClaro.copy(alpha = 0.6f),
+                                selectedIconColor = Greon.TextoTitulo,
+                                selectedTextColor = Greon.TextoTitulo,
+                                indicatorColor = if (Greon.EsOscuro) Greon.Verde.copy(alpha = 0.35f)
+                                else Greon.VerdeClaro.copy(alpha = 0.6f),
                                 unselectedIconColor = Greon.TextoSuave,
                                 unselectedTextColor = Greon.TextoSuave
                             )

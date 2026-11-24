@@ -33,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import com.greontrack.admin.ui.theme.Greon
@@ -46,8 +45,9 @@ import com.greontrack.admin.ui.theme.Greon
 /** Degradado animado que se desplaza de izquierda a derecha. */
 @Composable
 fun rememberBrilloSkeleton(): Brush {
-    val base = Greon.VerdeOscuro.copy(alpha = 0.07f)
-    val brillo = Greon.VerdeOscuro.copy(alpha = 0.015f)
+    // Se basa en el color del texto para que se vea en tema claro y oscuro
+    val base = Greon.Texto.copy(alpha = 0.08f)
+    val brillo = Greon.Texto.copy(alpha = 0.02f)
     val transicion = rememberInfiniteTransition(label = "skeleton")
     val x by transicion.animateFloat(
         initialValue = -400f,
@@ -83,7 +83,7 @@ private fun TarjetaFantasma(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = Greon.Superficie),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(Modifier.padding(16.dp), content = contenido)
