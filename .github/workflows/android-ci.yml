@@ -31,16 +31,16 @@ jobs:
 
     steps:
       - name: Descargar el codigo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Instalar Java 21 (el mismo que trae Android Studio)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
 
       - name: Preparar Gradle (con cache)
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       # supabase.properties no se sube al repositorio (tiene las credenciales).
       # Si el repositorio tiene las variables SUPABASE_URL y SUPABASE_ANON_KEY
@@ -73,7 +73,7 @@ jobs:
         run: ./gradlew assembleDebug
 
       - name: Guardar el APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: greontrack-admin-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
@@ -81,7 +81,7 @@ jobs:
 
       - name: Guardar reportes de pruebas y Lint
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: reportes
           path: |
@@ -93,7 +93,7 @@ jobs:
       - name: Publicar Lint en Security
         if: always() && github.event_name != 'pull_request'
         continue-on-error: true
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: app/build/reports/lint-results-debug.sarif
           category: android-lint
