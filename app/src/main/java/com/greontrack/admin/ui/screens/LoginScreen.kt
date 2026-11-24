@@ -263,22 +263,31 @@ private fun SaludoGreon(triste: Boolean) {
     val texto = if (triste) "¡Uy! Algo salió mal. Revisa el mensaje de abajo." else saludo
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        // Espacio reservado para el globito, para que la pantalla no "brinque" al aparecer
-        Box(Modifier.heightIn(min = 58.dp), contentAlignment = Alignment.BottomCenter) {
-            AnimatedVisibility(
-                visible = texto != null,
-                enter = fadeIn() + scaleIn(initialScale = 0.85f),
-                exit = fadeOut()
-            ) {
-                GloboTexto(texto ?: "")
-            }
-        }
+        GloboAnimado(texto)
         MascotaGreon(
             ancho = 150.dp,
             animo = if (triste) AnimoGreon.Triste else AnimoGreon.Feliz,
             descripcion = "Greon, la mascota de GreonTrack. Tócalo para que te salude",
             alTocar = { saludo = SALUDOS.filter { it != saludo }.random() }
         )
+    }
+}
+
+/**
+ * Globito que aparece con animacion. Va en su propia funcion para que
+ * Kotlin use el AnimatedVisibility normal y no el de ColumnScope.
+ */
+@Composable
+private fun GloboAnimado(texto: String?) {
+    // Espacio reservado para el globito, para que la pantalla no "brinque" al aparecer
+    Box(Modifier.heightIn(min = 58.dp), contentAlignment = Alignment.BottomCenter) {
+        AnimatedVisibility(
+            visible = texto != null,
+            enter = fadeIn() + scaleIn(initialScale = 0.85f),
+            exit = fadeOut()
+        ) {
+            GloboTexto(texto ?: "")
+        }
     }
 }
 
@@ -330,9 +339,9 @@ fun SinConfigurarScreen() {
                 Spacer(Modifier.height(10.dp))
                 Text(
                     "Abre el archivo supabase.properties (en la carpeta raíz del proyecto) y " +
-                        "pega tu SUPABASE_URL y tu SUPABASE_ANON_KEY. Son los mismos valores del " +
-                        ".env de la app web.\n\nDespués haz File > Sync Project with Gradle Files " +
-                        "y vuelve a ejecutar la app.",
+                            "pega tu SUPABASE_URL y tu SUPABASE_ANON_KEY. Son los mismos valores del " +
+                            ".env de la app web.\n\nDespués haz File > Sync Project with Gradle Files " +
+                            "y vuelve a ejecutar la app.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Greon.Texto
                 )
