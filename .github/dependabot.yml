@@ -1,5 +1,5 @@
 # Dependabot revisa cada semana si hay versiones nuevas de las librerias
-# (sobre todo parches de seguridad) y abre un pull request para actualizarlas.
+# (sobre los parches de seguridad) y abre un pull request para actualizarlas.
 # El pipeline "Android CI" compila y prueba cada pull request antes de aceptarlo.
 version: 2
 updates:
