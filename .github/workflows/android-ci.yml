@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Descargar el codigo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Instalar Java 21 (el mismo que trae Android Studio)
         uses: actions/setup-java@v5
