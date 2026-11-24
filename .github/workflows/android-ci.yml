@@ -40,7 +40,7 @@ jobs:
           java-version: 21
 
       - name: Preparar Gradle (con cache)
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       # supabase.properties no se sube al repositorio (tiene las credenciales).
       # Si el repositorio tiene las variables SUPABASE_URL y SUPABASE_ANON_KEY
