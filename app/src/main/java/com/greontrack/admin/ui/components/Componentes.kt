@@ -9,6 +9,7 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -17,16 +18,18 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CloudOff
-import androidx.compose.material.icons.rounded.Inbox
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -618,36 +621,84 @@ fun Cargando(texto: String = "Cargando…") {
     }
 }
 
+/**
+ * Pantalla de error con Greon triste, como en la web.
+ * Si el problema es de conexion, el titulo lo dice claro.
+ */
 @Composable
 fun ErrorEstado(mensaje: String, alReintentar: () -> Unit) {
-    Column(
-        Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(Icons.Rounded.CloudOff, contentDescription = null, tint = Greon.Error, modifier = Modifier.size(48.dp))
-        Spacer(Modifier.height(12.dp))
-        Text("No se pudieron cargar los datos", style = MaterialTheme.typography.titleMedium, color = Greon.Texto)
-        Spacer(Modifier.height(6.dp))
-        Text(mensaje, style = MaterialTheme.typography.bodyMedium, color = Greon.TextoSuave, textAlign = TextAlign.Center)
-        Spacer(Modifier.height(18.dp))
-        Button(onClick = alReintentar) { Text("Reintentar") }
+    val sinConexion = mensaje.contains("conexión", ignoreCase = true) ||
+        mensaje.contains("internet", ignoreCase = true)
+    // Centrado en la pantalla, pero con scroll si no cabe (por ejemplo, en horizontal)
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .heightIn(min = maxHeight)
+                .padding(32.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ContenidoError(sinConexion, mensaje, alReintentar)
+        }
     }
 }
 
 @Composable
-fun Vacio(texto: String, modifier: Modifier = Modifier) {
-    Column(
+private fun ContenidoError(sinConexion: Boolean, mensaje: String, alReintentar: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        MascotaGreon(ancho = 150.dp, animo = AnimoGreon.Triste)
+        Spacer(Modifier.height(18.dp))
+        Text(
+            if (sinConexion) "Greon no pudo conectarse" else "No se pudieron cargar los datos",
+            style = MaterialTheme.typography.titleLarge,
+            color = Greon.TextoTitulo,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(mensaje, style = MaterialTheme.typography.bodyMedium, color = Greon.TextoSuave, textAlign = TextAlign.Center)
+        Spacer(Modifier.height(20.dp))
+        Button(
+            onClick = alReintentar,
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Greon.Verde, contentColor = Color.White)
+        ) {
+            Icon(Icons.Rounded.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("Reintentar")
+        }
+    }
+}
+
+/**
+ * Estado vacio con Greon a un lado, como "device-empty" en la web.
+ *
+ * @param titulo texto en negritas (opcional).
+ * @param compacto version mas chica para dentro de tarjetas (por ejemplo, las graficas).
+ */
+@Composable
+fun Vacio(
+    texto: String,
+    modifier: Modifier = Modifier,
+    titulo: String? = null,
+    compacto: Boolean = false
+) {
+    Row(
         modifier
             .fillMaxWidth()
-            .padding(vertical = 40.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(vertical = if (compacto) 6.dp else 24.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Rounded.Inbox, contentDescription = null, tint = Greon.Gris, modifier = Modifier.size(40.dp))
-        Spacer(Modifier.height(8.dp))
-        Text(texto, color = Greon.TextoSuave, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+        MascotaGreon(ancho = if (compacto) 72.dp else 108.dp, flotar = !compacto)
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            if (titulo != null) {
+                Text(titulo, style = MaterialTheme.typography.titleSmall, color = Greon.TextoTitulo)
+                Spacer(Modifier.height(3.dp))
+            }
+            Text(texto, style = MaterialTheme.typography.bodyMedium, color = Greon.TextoSuave)
+        }
     }
 }
 

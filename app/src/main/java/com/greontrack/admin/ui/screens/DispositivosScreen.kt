@@ -106,7 +106,19 @@ fun DispositivosScreen(
                             }
                         }
                         if (filtrados.isEmpty()) {
-                            item { Vacio("No hay dispositivos que coincidan.") }
+                            item {
+                                if (lista.isEmpty()) {
+                                    Vacio(
+                                        titulo = "Aún no hay dispositivos",
+                                        texto = "Cuando los usuarios agreguen aparatos en la web, aparecerán aquí."
+                                    )
+                                } else {
+                                    Vacio(
+                                        titulo = "Sin resultados",
+                                        texto = "No hay dispositivos que coincidan con la búsqueda o el filtro."
+                                    )
+                                }
+                            }
                         }
                         items(filtrados, key = { it.id }) { d ->
                             FilaDispositivo(d) { d.usuarioId?.let(alAbrirUsuario) }

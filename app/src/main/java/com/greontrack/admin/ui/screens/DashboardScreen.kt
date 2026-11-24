@@ -1,6 +1,5 @@
 package com.greontrack.admin.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,10 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.greontrack.admin.R
 import com.greontrack.admin.data.DashboardStats
 import com.greontrack.admin.ui.DashboardViewModel
 import com.greontrack.admin.ui.components.BarrasHorizontales
@@ -49,6 +46,7 @@ import com.greontrack.admin.ui.components.GraficaBarras
 import com.greontrack.admin.ui.components.GraficaLinea
 import com.greontrack.admin.ui.components.GreonTopBar
 import com.greontrack.admin.ui.components.KpiCard
+import com.greontrack.admin.ui.components.MascotaGreon
 import com.greontrack.admin.ui.components.SkeletonDashboard
 import com.greontrack.admin.ui.components.Tarjeta
 import com.greontrack.admin.ui.components.Vacio
@@ -146,7 +144,7 @@ private fun ContenidoDashboard(d: DashboardStats) {
                 titulo = "Nuevos usuarios",
                 descripcion = "Registros por día · últimos 14 días · toca una barra"
             ) {
-                if (d.registrosPorDia.isEmpty()) Vacio("Sin datos")
+                if (d.registrosPorDia.isEmpty()) Vacio("Aún no hay registros en estos 14 días.", compacto = true)
                 else GraficaBarras(
                     valores = d.registrosPorDia.map { it.total },
                     etiquetas = d.registrosPorDia.map { Formato.diaCorto(it.dia) },
@@ -166,7 +164,7 @@ private fun ContenidoDashboard(d: DashboardStats) {
                 titulo = "Consumo registrado",
                 descripcion = "kWh por día · últimos 14 días · toca un punto"
             ) {
-                if (d.kwhPorDia.isEmpty()) Vacio("Sin datos")
+                if (d.kwhPorDia.isEmpty()) Vacio("Aún no hay consumo registrado en estos 14 días.", compacto = true)
                 else {
                     val total = d.kwhPorDia.sumOf { it.total }
                     Text(
@@ -188,7 +186,7 @@ private fun ContenidoDashboard(d: DashboardStats) {
 
         item {
             Tarjeta(modifier = Modifier.aparecer(entrada, primeraTarjeta + 2), titulo = "Usuarios por rol") {
-                if (d.roles.isEmpty()) Vacio("Sin usuarios")
+                if (d.roles.isEmpty()) Vacio("Aún no hay usuarios registrados.", compacto = true)
                 else BarrasHorizontales(d.roles.map { Formato.nombreRol(it.nombre ?: "general") to it.total })
             }
         }
@@ -199,7 +197,11 @@ private fun ContenidoDashboard(d: DashboardStats) {
                 titulo = "Dispositivos por tipo",
                 descripcion = "Los 6 tipos más registrados"
             ) {
-                if (d.dispositivosPorTipo.isEmpty()) Vacio("Aún no hay dispositivos")
+                if (d.dispositivosPorTipo.isEmpty()) Vacio(
+                    titulo = "Aún no hay dispositivos",
+                    texto = "Cuando los usuarios agreguen aparatos en la web, aparecerán aquí.",
+                    compacto = true
+                )
                 else BarrasHorizontales(
                     d.dispositivosPorTipo.map { (it.nombre ?: "Otro").replaceFirstChar { c -> c.uppercase() } to it.total }
                 )
@@ -249,11 +251,8 @@ private fun Bienvenida(d: DashboardStats, modifier: Modifier = Modifier) {
                     color = Color.White.copy(alpha = 0.9f)
                 )
             }
-            Image(
-                painter = painterResource(R.drawable.mascota_greon),
-                contentDescription = "Greon, la mascota",
-                modifier = Modifier.size(104.dp)
-            )
+            // Greon flota y da un saltito si lo tocas
+            MascotaGreon(ancho = 104.dp, descripcion = "Greon, la mascota", alTocar = {})
         }
     }
 }

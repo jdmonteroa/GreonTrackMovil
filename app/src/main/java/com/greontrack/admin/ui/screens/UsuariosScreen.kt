@@ -104,7 +104,19 @@ fun UsuariosScreen(
                             )
                         }
                         if (filtrados.isEmpty()) {
-                            item { Vacio("No hay usuarios que coincidan con la búsqueda.") }
+                            item {
+                                if (usuarios.isEmpty()) {
+                                    Vacio(
+                                        titulo = "Aún no hay usuarios",
+                                        texto = "Cuando alguien se registre en la web, aparecerá aquí."
+                                    )
+                                } else {
+                                    Vacio(
+                                        titulo = "Sin resultados",
+                                        texto = "No hay usuarios que coincidan con la búsqueda o el filtro."
+                                    )
+                                }
+                            }
                         }
                         items(filtrados, key = { it.id }) { u ->
                             FilaUsuario(u) { alAbrirUsuario(u.id) }

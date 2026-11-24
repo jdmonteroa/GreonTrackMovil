@@ -1,5 +1,9 @@
 package com.greontrack.admin.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -10,11 +14,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,9 +30,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AdminPanelSettings
+import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Button
@@ -39,17 +46,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -57,7 +68,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.greontrack.admin.R
+import com.greontrack.admin.ui.components.AnimoGreon
+import com.greontrack.admin.ui.components.MascotaGreon
 import com.greontrack.admin.ui.theme.Greon
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
 
 @Composable
 fun LoginScreen(
@@ -85,18 +100,26 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Image(
-                painter = painterResource(R.drawable.logo_greon),
-                contentDescription = "Logo de GreonTrack",
-                modifier = Modifier
-                    .size(108.dp)
-                    .clip(CircleShape)
-                    .background(Color.White)
-                    .padding(10.dp)
-            )
-            Spacer(Modifier.height(18.dp))
-            Text("GreonTrack", style = MaterialTheme.typography.headlineLarge, color = Color.White)
-            Spacer(Modifier.height(6.dp))
+            // Logo y nombre en una fila
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(R.drawable.logo_greon),
+                    contentDescription = "Logo de GreonTrack",
+                    modifier = Modifier
+                        .size(46.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .padding(4.dp)
+                )
+                Spacer(Modifier.width(10.dp))
+                Text("GreonTrack", style = MaterialTheme.typography.headlineLarge, color = Color.White)
+            }
+            Spacer(Modifier.height(12.dp))
+
+            // Greon saluda (y se pone triste si algo sale mal), como en la web
+            SaludoGreon(triste = error != null)
+            Spacer(Modifier.height(12.dp))
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -113,7 +136,7 @@ fun LoginScreen(
                 Spacer(Modifier.width(6.dp))
                 Text("Panel de administración", style = MaterialTheme.typography.labelMedium, color = Greon.VerdeClaro)
             }
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(24.dp))
 
             Card(
                 shape = RoundedCornerShape(20.dp),
@@ -218,6 +241,73 @@ fun LoginScreen(
     }
 }
 
+/** Frases de Greon en el login (las mismas de la web, AuthLayout.tsx). */
+private val SALUDOS = listOf(
+    "¡Hola! Soy Greon 🌱",
+    "Juntos cuidamos el planeta, un watt a la vez.",
+    "¡Qué gusto verte por aquí!",
+    "Pequeñas acciones, grandes cambios 💚"
+)
+
+/**
+ * Greon con un globito de texto arriba. Saluda solo al abrir la pantalla
+ * y cambia de frase cada vez que lo tocas. Si hubo un error, se pone triste.
+ */
+@Composable
+private fun SaludoGreon(triste: Boolean) {
+    var saludo by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        delay(600.milliseconds)
+        if (saludo == null) saludo = SALUDOS.first()
+    }
+    val texto = if (triste) "¡Uy! Algo salió mal. Revisa el mensaje de abajo." else saludo
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        // Espacio reservado para el globito, para que la pantalla no "brinque" al aparecer
+        Box(Modifier.heightIn(min = 58.dp), contentAlignment = Alignment.BottomCenter) {
+            AnimatedVisibility(
+                visible = texto != null,
+                enter = fadeIn() + scaleIn(initialScale = 0.85f),
+                exit = fadeOut()
+            ) {
+                GloboTexto(texto ?: "")
+            }
+        }
+        MascotaGreon(
+            ancho = 150.dp,
+            animo = if (triste) AnimoGreon.Triste else AnimoGreon.Feliz,
+            descripcion = "Greon, la mascota de GreonTrack. Tócalo para que te salude",
+            alTocar = { saludo = SALUDOS.filter { it != saludo }.random() }
+        )
+    }
+}
+
+@Composable
+private fun GloboTexto(texto: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            texto,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = Greon.VerdeOscuro,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .widthIn(max = 260.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White)
+                .padding(horizontal = 14.dp, vertical = 8.dp)
+        )
+        // Piquito del globo apuntando hacia Greon
+        Box(
+            Modifier
+                .offset(y = (-6).dp)
+                .size(12.dp)
+                .rotate(45f)
+                .background(Color.White)
+        )
+    }
+}
+
 /** Se muestra si falta llenar supabase.properties. */
 @Composable
 fun SinConfigurarScreen() {
@@ -234,6 +324,8 @@ fun SinConfigurarScreen() {
             colors = CardDefaults.cardColors(containerColor = Greon.Superficie)
         ) {
             Column(Modifier.padding(22.dp)) {
+                MascotaGreon(ancho = 110.dp, animo = AnimoGreon.Triste, flotar = false)
+                Spacer(Modifier.height(10.dp))
                 Text("Falta configurar Supabase", style = MaterialTheme.typography.headlineSmall, color = Greon.TextoTitulo)
                 Spacer(Modifier.height(10.dp))
                 Text(

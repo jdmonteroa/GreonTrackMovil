@@ -194,7 +194,7 @@ private fun ContenidoDetalle(u: UsuarioDetalle, vm: UsuarioDetalleViewModel) {
             )
         }
         if (u.dispositivos.isEmpty()) {
-            item { Vacio("Este usuario aún no registra dispositivos.") }
+            item { Vacio(titulo = "Aún no hay dispositivos", texto = "Este usuario todavía no registra aparatos.") }
         }
         items(u.dispositivos.size) { i -> FilaDispositivoUsuario(u.dispositivos[i]) }
     }
