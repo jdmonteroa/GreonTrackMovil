@@ -2,4 +2,5 @@
 <resources>
     <color name="verde_oscuro">#FF0F3D2E</color>
     <color name="verde_muy_claro">#FFE8F5E9</color>
+    <color name="ic_launcher_fondo">#FFFFFFFF</color>
 </resources>

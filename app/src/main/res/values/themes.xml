@@ -4,4 +4,16 @@
         <item name="android:windowBackground">@color/verde_oscuro</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
+
+    <!--
+        Splash al abrir la app (API de splash de Android 12+, con soporte
+        para versiones anteriores gracias a core-splashscreen).
+        Fondo verde oscuro y el logo dentro de un circulo blanco.
+    -->
+    <style name="Theme.GreonAdmin.Inicio" parent="Theme.SplashScreen.IconBackground">
+        <item name="windowSplashScreenBackground">@color/verde_oscuro</item>
+        <item name="windowSplashScreenIconBackgroundColor">@android:color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.GreonAdmin</item>
+    </style>
 </resources>

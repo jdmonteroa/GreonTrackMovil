@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -36,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -59,9 +61,38 @@ import com.greontrack.admin.ui.screens.UsuariosScreen
 import com.greontrack.admin.ui.theme.Greon
 import com.greontrack.admin.ui.theme.GreonAdminTheme
 
+/** Cuanto dura la animacion de salida del splash (el logo crece y se desvanece). */
+private const val DURACION_SALIDA_SPLASH = 400L
+
 class MainActivity : ComponentActivity() {
+
+    // El mismo SesionViewModel que usa la app: el splash lo necesita para saber cuando quitarse
+    private val sesion: SesionViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Splash oficial (API de Android 12+). Se instala antes de super.onCreate
+        val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        // El splash se queda mientras se revisa si hay una sesion guardada
+        splash.setKeepOnScreenCondition { sesion.estado == EstadoSesion.Iniciando }
+
+        // Al salir, el logo crece un poco y todo se desvanece
+        splash.setOnExitAnimationListener { vista ->
+            runCatching {
+                vista.iconView.animate()
+                    .scaleX(1.35f)
+                    .scaleY(1.35f)
+                    .setDuration(DURACION_SALIDA_SPLASH)
+                    .start()
+            }
+            vista.view.animate()
+                .alpha(0f)
+                .setDuration(DURACION_SALIDA_SPLASH)
+                .withEndAction { vista.remove() }
+                .start()
+        }
+
         PreferenciaTema.iniciar(this)
         // Iconos de la barra de estado en blanco (la barra superior es verde oscuro)
         enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT))
@@ -87,7 +118,7 @@ class MainActivity : ComponentActivity() {
             }
 
             GreonAdminTheme(oscuro = oscuro) {
-                GreonAdminApp()
+                GreonAdminApp(sesion)
             }
         }
     }
@@ -110,6 +141,7 @@ fun GreonAdminApp(sesion: SesionViewModel = viewModel()) {
     }
 }
 
+/** Respaldo del splash dentro de Compose. Es igual al splash del sistema. */
 @Composable
 private fun Splash() {
     Box(
@@ -122,10 +154,10 @@ private fun Splash() {
             painter = painterResource(R.drawable.logo_greon),
             contentDescription = "GreonTrack",
             modifier = Modifier
-                .size(110.dp)
+                .size(160.dp)
                 .clip(CircleShape)
                 .background(Color.White)
-                .padding(10.dp)
+                .padding(25.dp)
         )
     }
 }
