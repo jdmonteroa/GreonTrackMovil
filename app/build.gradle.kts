@@ -23,7 +23,9 @@ android {
 
     defaultConfig {
         applicationId = "com.greontrack.admin"
-        minSdk = 26
+        // Android 5.0 o superior (lo minimo que soporta Jetpack Compose).
+        // Para versiones menores a Android 8 se necesita el desugaring de abajo.
+        minSdk = 21
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -45,6 +47,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // Agrega java.time (fechas) a celulares con Android menor a 8.
+        // Lo usan Formato.kt y el cliente de Supabase.
+        isCoreLibraryDesugaringEnabled = true
     }
 
     buildFeatures {
@@ -102,6 +107,9 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:auth-kt")
     implementation("io.ktor:ktor-client-android:3.0.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+
+    // Desugaring: java.time en Android 5, 6 y 7
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 
     // Pruebas unitarias (se corren en el pipeline de GitHub Actions)
     testImplementation("junit:junit:4.13.2")
