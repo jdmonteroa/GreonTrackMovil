@@ -105,7 +105,7 @@ data class OpcionMenu(val titulo: String, val icono: ImageVector)
  * Menu lateral con el estilo del sidebar de la web: fondo verde oscuro,
  * logo arriba y la opcion elegida resaltada en verde.
  *
- * @param completo true = con textos al lado (tablet); false = angosto, solo iconos con texto chico.
+ * @param completo true = con textos al lado (tablet); f = angosto, solo iconos con texto chico.
  */
 @Composable
 fun MenuLateral(
