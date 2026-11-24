@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 // =====================================================================
 //  Animaciones de entrada: los elementos de una pantalla aparecen uno
@@ -43,10 +44,6 @@ fun rememberEntradaEscalonada(): EntradaEscalonada {
     return entrada
 }
 
-/**
- * Hace que el elemento aparezca con desvanecido y deslizamiento.
- * indice es su posicion en la pantalla: 0 aparece primero, 1 despues, etc.
- */
 @Composable
 fun Modifier.aparecer(entrada: EntradaEscalonada, indice: Int): Modifier {
     // true solo la primera vez que este elemento se dibuja
@@ -58,7 +55,7 @@ fun Modifier.aparecer(entrada: EntradaEscalonada, indice: Int): Modifier {
             // Cada elemento espera su turno, contado desde que abrió la pantalla.
             // Si aparece después por hacer scroll, ya pasó su turno y se anima de inmediato.
             val espera = entrada.inicio + indice * RETRASO_ENTRE_ELEMENTOS - SystemClock.uptimeMillis()
-            if (espera > 0) delay(espera)
+            if (espera > 0) delay(espera.milliseconds)
             progreso.animateTo(1f, tween(DURACION_ENTRADA, easing = FastOutSlowInEasing))
         }
     }
