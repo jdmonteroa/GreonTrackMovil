@@ -73,7 +73,7 @@ jobs:
         run: ./gradlew assembleDebug
 
       - name: Guardar el APK
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: greontrack-admin-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
@@ -81,7 +81,7 @@ jobs:
 
       - name: Guardar reportes de pruebas y Lint
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: reportes
           path: |
