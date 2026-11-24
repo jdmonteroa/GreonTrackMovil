@@ -11,10 +11,15 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Dashboard
@@ -41,6 +46,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -51,6 +57,10 @@ import com.greontrack.admin.data.PreferenciaTema
 import com.greontrack.admin.data.Tema
 import com.greontrack.admin.ui.EstadoSesion
 import com.greontrack.admin.ui.SesionViewModel
+import com.greontrack.admin.ui.components.MenuLateral
+import com.greontrack.admin.ui.components.OpcionMenu
+import com.greontrack.admin.ui.components.TipoPantalla
+import com.greontrack.admin.ui.components.tipoPantalla
 import com.greontrack.admin.ui.screens.AjustesScreen
 import com.greontrack.admin.ui.screens.DashboardScreen
 import com.greontrack.admin.ui.screens.DispositivosScreen
@@ -174,25 +184,34 @@ private fun PanelAdmin(correo: String, alCerrarSesion: () -> Unit) {
     val nav = rememberNavController()
     val entrada by nav.currentBackStackEntryAsState()
     val destino = entrada?.destination
-    val mostrarBarra = Seccion.entries.any { s -> destino?.hierarchy?.any { it.route == s.ruta } == true }
+
+    // Seccion actual. En el detalle de un usuario se marca la seccion de donde vino.
+    val seccionActual = Seccion.entries.firstOrNull { s -> destino?.hierarchy?.any { it.route == s.ruta } == true }
+        ?: Seccion.entries.firstOrNull { it.ruta == nav.previousBackStackEntry?.destination?.route }
+    val enSeccionPrincipal = Seccion.entries.any { s -> destino?.hierarchy?.any { it.route == s.ruta } == true }
+
+    val irA: (Seccion) -> Unit = { s ->
+        nav.navigate(s.ruta) {
+            popUpTo(nav.graph.findStartDestination().id) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
+    // Celular en vertical: barra abajo. Horizontal o tablet: menu lateral como la web.
+    val pantalla = tipoPantalla()
+    val conMenuLateral = pantalla != TipoPantalla.Compacta
 
     Scaffold(
         containerColor = Greon.VerdeMuyClaro,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
-            if (mostrarBarra) {
+            if (!conMenuLateral && enSeccionPrincipal) {
                 NavigationBar(containerColor = Greon.Superficie, tonalElevation = 0.dp) {
                     Seccion.entries.forEach { s ->
-                        val seleccionada = destino?.hierarchy?.any { it.route == s.ruta } == true
                         NavigationBarItem(
-                            selected = seleccionada,
-                            onClick = {
-                                nav.navigate(s.ruta) {
-                                    popUpTo(nav.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
+                            selected = s == seccionActual,
+                            onClick = { irA(s) },
                             icon = { Icon(s.icono, contentDescription = s.titulo) },
                             label = { Text(s.titulo) },
                             colors = NavigationBarItemDefaults.colors(
@@ -209,30 +228,69 @@ private fun PanelAdmin(correo: String, alCerrarSesion: () -> Unit) {
             }
         }
     ) { relleno ->
-        NavHost(
-            navController = nav,
-            startDestination = Seccion.Panel.ruta,
-            modifier = Modifier.padding(relleno)
+        Row(
+            Modifier
+                .fillMaxSize()
+                .padding(relleno)
         ) {
-            composable(Seccion.Panel.ruta) { DashboardScreen() }
-            composable(Seccion.Usuarios.ruta) {
-                UsuariosScreen(alAbrirUsuario = { id -> nav.navigate("usuario/$id") })
-            }
-            composable(Seccion.Dispositivos.ruta) {
-                DispositivosScreen(alAbrirUsuario = { id -> nav.navigate("usuario/$id") })
-            }
-            composable(Seccion.Ajustes.ruta) {
-                AjustesScreen(correo = correo, alCerrarSesion = alCerrarSesion)
-            }
-            composable(
-                route = "usuario/{id}",
-                arguments = listOf(navArgument("id") { type = NavType.StringType })
-            ) { backStack ->
-                UsuarioDetalleScreen(
-                    usuarioId = backStack.arguments?.getString("id") ?: "",
-                    alVolver = { nav.popBackStack() }
+            if (conMenuLateral) {
+                MenuLateral(
+                    opciones = Seccion.entries.map { OpcionMenu(it.titulo, it.icono) },
+                    seleccionada = seccionActual?.ordinal,
+                    completo = pantalla == TipoPantalla.Expandida,
+                    alElegir = { i -> irA(Seccion.entries[i]) }
                 )
             }
+            Pantallas(
+                nav = nav,
+                correo = correo,
+                alCerrarSesion = alCerrarSesion,
+                // En horizontal, deja libre el lado derecho por si ahi esta la barra del sistema o la camara
+                modifier = Modifier
+                    .weight(1f)
+                    .then(
+                        if (conMenuLateral) {
+                            Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.End))
+                        } else {
+                            Modifier
+                        }
+                    )
+            )
+        }
+    }
+}
+
+/** Las pantallas de la app y como se navega entre ellas. */
+@Composable
+private fun Pantallas(
+    nav: NavHostController,
+    correo: String,
+    alCerrarSesion: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    NavHost(
+        navController = nav,
+        startDestination = Seccion.Panel.ruta,
+        modifier = modifier
+    ) {
+        composable(Seccion.Panel.ruta) { DashboardScreen() }
+        composable(Seccion.Usuarios.ruta) {
+            UsuariosScreen(alAbrirUsuario = { id -> nav.navigate("usuario/$id") })
+        }
+        composable(Seccion.Dispositivos.ruta) {
+            DispositivosScreen(alAbrirUsuario = { id -> nav.navigate("usuario/$id") })
+        }
+        composable(Seccion.Ajustes.ruta) {
+            AjustesScreen(correo = correo, alCerrarSesion = alCerrarSesion)
+        }
+        composable(
+            route = "usuario/{id}",
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) { backStack ->
+            UsuarioDetalleScreen(
+                usuarioId = backStack.arguments?.getString("id") ?: "",
+                alVolver = { nav.popBackStack() }
+            )
         }
     }
 }

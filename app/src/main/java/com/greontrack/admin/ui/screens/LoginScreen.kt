@@ -142,7 +142,10 @@ fun LoginScreen(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Greon.Superficie),
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                modifier = Modifier.fillMaxWidth()
+                // En tablet u horizontal la tarjeta no pasa de 460 dp para que no se vea estirada
+                modifier = Modifier
+                    .widthIn(max = 460.dp)
+                    .fillMaxWidth()
             ) {
                 Column(Modifier.padding(22.dp)) {
                     Text("Iniciar sesión", style = MaterialTheme.typography.headlineSmall, color = Greon.TextoTitulo)

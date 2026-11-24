@@ -106,10 +106,11 @@ fun SkeletonDashboard() {
         // Banner de bienvenida
         Hueso(b, Modifier.fillMaxWidth().height(128.dp), RoundedCornerShape(20.dp))
 
-        // Tarjetas KPI (2 por fila)
-        repeat(3) {
+        // Tarjetas KPI: las mismas columnas que tendra el panel (2, 3 o 4)
+        val columnas = columnasKpi(anchoContenido())
+        repeat(if (columnas > 2) 2 else 3) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                repeat(2) {
+                repeat(columnas) {
                     TarjetaFantasma(Modifier.weight(1f)) {
                         Hueso(b, Modifier.size(36.dp), RoundedCornerShape(10.dp))
                         Spacer(Modifier.height(12.dp))

@@ -4,9 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -50,7 +52,9 @@ import com.greontrack.admin.ui.components.MascotaGreon
 import com.greontrack.admin.ui.components.SkeletonDashboard
 import com.greontrack.admin.ui.components.Tarjeta
 import com.greontrack.admin.ui.components.Vacio
+import com.greontrack.admin.ui.components.anchoContenido
 import com.greontrack.admin.ui.components.aparecer
+import com.greontrack.admin.ui.components.columnasKpi
 import com.greontrack.admin.ui.components.rememberEntradaEscalonada
 import com.greontrack.admin.ui.components.rememberProgresoContador
 import com.greontrack.admin.ui.theme.Greon
@@ -109,6 +113,11 @@ private fun ContenidoDashboard(d: DashboardStats) {
     val progresoKpi = rememberProgresoContador(entrada)
     val primeraTarjeta = 1 + kpis.size
 
+    // Diseno adaptable: mas columnas cuando hay espacio (horizontal o tablet)
+    val ancho = anchoContenido()
+    val columnas = columnasKpi(ancho)
+    val graficasLadoALado = ancho >= 700.dp
+
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -116,11 +125,12 @@ private fun ContenidoDashboard(d: DashboardStats) {
     ) {
         item { Bienvenida(d, Modifier.aparecer(entrada, 0)) }
 
-        val filas = kpis.chunked(2)
+        val filas = kpis.chunked(columnas)
         items(filas.size) { fila ->
-            val par = filas[fila]
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                par.forEachIndexed { columna, k ->
+            val grupo = filas[fila]
+            // IntrinsicSize.Max: todas las tarjetas de la fila quedan de la misma altura
+            Row(Modifier.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                grupo.forEachIndexed { columna, k ->
                     KpiCard(
                         icono = k.icono,
                         etiqueta = k.etiqueta,
@@ -129,103 +139,133 @@ private fun ContenidoDashboard(d: DashboardStats) {
                         acento = k.color,
                         modifier = Modifier
                             .weight(1f)
-                            .aparecer(entrada, 1 + fila * 2 + columna),
+                            .fillMaxHeight()
+                            .aparecer(entrada, 1 + fila * columnas + columna),
                         detalle = k.detalle,
                         progreso = { progresoKpi.value }
                     )
                 }
-                if (par.size == 1) Spacer(Modifier.weight(1f))
+                // Si la ultima fila queda incompleta, se rellena con espacios
+                repeat(columnas - grupo.size) { Spacer(Modifier.weight(1f)) }
             }
         }
 
-        item {
-            Tarjeta(
-                modifier = Modifier.aparecer(entrada, primeraTarjeta),
-                titulo = "Nuevos usuarios",
-                descripcion = "Registros por día · últimos 14 días · toca una barra"
-            ) {
-                if (d.registrosPorDia.isEmpty()) Vacio("Aún no hay registros en estos 14 días.", compacto = true)
-                else GraficaBarras(
-                    valores = d.registrosPorDia.map { it.total },
-                    etiquetas = d.registrosPorDia.map { Formato.diaCorto(it.dia) },
-                    etiquetasGlobo = d.registrosPorDia.map { Formato.diaMedio(it.dia) },
-                    color = Greon.Verde,
-                    formatoValor = { v ->
-                        val n = v.roundToInt()
-                        if (n == 1) "1 usuario nuevo" else "${Formato.entero(n)} usuarios nuevos"
-                    }
-                )
-            }
-        }
-
-        item {
-            Tarjeta(
-                modifier = Modifier.aparecer(entrada, primeraTarjeta + 1),
-                titulo = "Consumo registrado",
-                descripcion = "kWh por día · últimos 14 días · toca un punto"
-            ) {
-                if (d.kwhPorDia.isEmpty()) Vacio("Aún no hay consumo registrado en estos 14 días.", compacto = true)
-                else {
-                    val total = d.kwhPorDia.sumOf { it.total }
-                    Text(
-                        "${Formato.decimal(total, 1)} kWh en el periodo",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Greon.Ambar
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    GraficaLinea(
-                        valores = d.kwhPorDia.map { it.total },
-                        etiquetas = d.kwhPorDia.map { Formato.diaCorto(it.dia) },
-                        etiquetasGlobo = d.kwhPorDia.map { Formato.diaMedio(it.dia) },
-                        color = Greon.Ambar,
-                        formatoValor = { "${Formato.decimal(it, 2)} kWh" }
-                    )
+        if (graficasLadoALado) {
+            // Pantalla ancha: dos graficas por fila
+            item {
+                Row(Modifier.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    TarjetaNuevosUsuarios(d, Modifier.weight(1f).fillMaxHeight().aparecer(entrada, primeraTarjeta))
+                    TarjetaConsumo(d, Modifier.weight(1f).fillMaxHeight().aparecer(entrada, primeraTarjeta + 1))
                 }
             }
+            item {
+                Row(Modifier.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    TarjetaRoles(d, Modifier.weight(1f).fillMaxHeight().aparecer(entrada, primeraTarjeta + 2))
+                    TarjetaTipos(d, Modifier.weight(1f).fillMaxHeight().aparecer(entrada, primeraTarjeta + 3))
+                }
+            }
+        } else {
+            item { TarjetaNuevosUsuarios(d, Modifier.aparecer(entrada, primeraTarjeta)) }
+            item { TarjetaConsumo(d, Modifier.aparecer(entrada, primeraTarjeta + 1)) }
+            item { TarjetaRoles(d, Modifier.aparecer(entrada, primeraTarjeta + 2)) }
+            item { TarjetaTipos(d, Modifier.aparecer(entrada, primeraTarjeta + 3)) }
         }
 
-        item {
-            Tarjeta(modifier = Modifier.aparecer(entrada, primeraTarjeta + 2), titulo = "Usuarios por rol") {
-                if (d.roles.isEmpty()) Vacio("Aún no hay usuarios registrados.", compacto = true)
-                else BarrasHorizontales(d.roles.map { Formato.nombreRol(it.nombre ?: "general") to it.total })
-            }
-        }
+        item { TarjetaParametros(d, Modifier.aparecer(entrada, primeraTarjeta + 4)) }
+    }
+}
 
-        item {
-            Tarjeta(
-                modifier = Modifier.aparecer(entrada, primeraTarjeta + 3),
-                titulo = "Dispositivos por tipo",
-                descripcion = "Los 6 tipos más registrados"
-            ) {
-                if (d.dispositivosPorTipo.isEmpty()) Vacio(
-                    titulo = "Aún no hay dispositivos",
-                    texto = "Cuando los usuarios agreguen aparatos en la web, aparecerán aquí.",
-                    compacto = true
-                )
-                else BarrasHorizontales(
-                    d.dispositivosPorTipo.map { (it.nombre ?: "Otro").replaceFirstChar { c -> c.uppercase() } to it.total }
-                )
+@Composable
+private fun TarjetaNuevosUsuarios(d: DashboardStats, modifier: Modifier = Modifier) {
+    Tarjeta(
+        modifier = modifier,
+        titulo = "Nuevos usuarios",
+        descripcion = "Registros por día · últimos 14 días · toca una barra"
+    ) {
+        if (d.registrosPorDia.isEmpty()) Vacio("Aún no hay registros en estos 14 días.", compacto = true)
+        else GraficaBarras(
+            valores = d.registrosPorDia.map { it.total },
+            etiquetas = d.registrosPorDia.map { Formato.diaCorto(it.dia) },
+            etiquetasGlobo = d.registrosPorDia.map { Formato.diaMedio(it.dia) },
+            color = Greon.Verde,
+            formatoValor = { v ->
+                val n = v.roundToInt()
+                if (n == 1) "1 usuario nuevo" else "${Formato.entero(n)} usuarios nuevos"
             }
-        }
+        )
+    }
+}
 
-        item {
-            Tarjeta(modifier = Modifier.aparecer(entrada, primeraTarjeta + 4), titulo = "Parámetros de cálculo") {
-                Text(
-                    "Tarifa: ${d.tarifaKwh?.let { Formato.dinero(it) } ?: "—"} por kWh",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    "Factor de emisión: ${d.factorCo2?.let { Formato.decimal(it, 3) } ?: "—"} kg CO₂ por kWh",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "Puedes cambiarlos en Ajustes.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Greon.TextoSuave
-                )
-            }
+@Composable
+private fun TarjetaConsumo(d: DashboardStats, modifier: Modifier = Modifier) {
+    Tarjeta(
+        modifier = modifier,
+        titulo = "Consumo registrado",
+        descripcion = "kWh por día · últimos 14 días · toca un punto"
+    ) {
+        if (d.kwhPorDia.isEmpty()) Vacio("Aún no hay consumo registrado en estos 14 días.", compacto = true)
+        else {
+            val total = d.kwhPorDia.sumOf { it.total }
+            Text(
+                "${Formato.decimal(total, 1)} kWh en el periodo",
+                style = MaterialTheme.typography.labelMedium,
+                color = Greon.Ambar
+            )
+            Spacer(Modifier.height(8.dp))
+            GraficaLinea(
+                valores = d.kwhPorDia.map { it.total },
+                etiquetas = d.kwhPorDia.map { Formato.diaCorto(it.dia) },
+                etiquetasGlobo = d.kwhPorDia.map { Formato.diaMedio(it.dia) },
+                color = Greon.Ambar,
+                formatoValor = { "${Formato.decimal(it, 2)} kWh" }
+            )
         }
+    }
+}
+
+@Composable
+private fun TarjetaRoles(d: DashboardStats, modifier: Modifier = Modifier) {
+    Tarjeta(modifier = modifier, titulo = "Usuarios por rol") {
+        if (d.roles.isEmpty()) Vacio("Aún no hay usuarios registrados.", compacto = true)
+        else BarrasHorizontales(d.roles.map { Formato.nombreRol(it.nombre ?: "general") to it.total })
+    }
+}
+
+@Composable
+private fun TarjetaTipos(d: DashboardStats, modifier: Modifier = Modifier) {
+    Tarjeta(
+        modifier = modifier,
+        titulo = "Dispositivos por tipo",
+        descripcion = "Los 6 tipos más registrados"
+    ) {
+        if (d.dispositivosPorTipo.isEmpty()) Vacio(
+            titulo = "Aún no hay dispositivos",
+            texto = "Cuando los usuarios agreguen aparatos en la web, aparecerán aquí.",
+            compacto = true
+        )
+        else BarrasHorizontales(
+            d.dispositivosPorTipo.map { (it.nombre ?: "Otro").replaceFirstChar { c -> c.uppercase() } to it.total }
+        )
+    }
+}
+
+@Composable
+private fun TarjetaParametros(d: DashboardStats, modifier: Modifier = Modifier) {
+    Tarjeta(modifier = modifier, titulo = "Parámetros de cálculo") {
+        Text(
+            "Tarifa: ${d.tarifaKwh?.let { Formato.dinero(it) } ?: "—"} por kWh",
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            "Factor de emisión: ${d.factorCo2?.let { Formato.decimal(it, 3) } ?: "—"} kg CO₂ por kWh",
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "Puedes cambiarlos en Ajustes.",
+            style = MaterialTheme.typography.bodySmall,
+            color = Greon.TextoSuave
+        )
     }
 }
 
