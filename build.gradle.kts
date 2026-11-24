@@ -1,6 +1,6 @@
 // Archivo de configuración raíz. Las dependencias de la app están en app/build.gradle.kts
 plugins {
-    id("com.android.application") version "8.12.0" apply false
+    id("com.android.application") version "9.5.2" apply false
     id("org.jetbrains.kotlin.android") version "2.2.0" apply false
     id("org.jetbrains.kotlin.plugin.compose") version "2.2.0" apply false
     id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0" apply false
