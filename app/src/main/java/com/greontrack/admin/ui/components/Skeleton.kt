@@ -206,7 +206,7 @@ fun SkeletonDetalle() {
     ) {
         // Encabezado con degradado
         Hueso(b, Modifier.fillMaxWidth().height(148.dp), RoundedCornerShape(20.dp))
-        // Mini grafica de consumo
+
         TarjetaFantasma {
             Hueso(b, Modifier.width(150.dp).height(14.dp))
             Spacer(Modifier.height(6.dp))

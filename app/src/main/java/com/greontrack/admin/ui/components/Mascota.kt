@@ -85,7 +85,7 @@ fun MascotaGreon(
     val escala = remember { Animatable(1f) }
     val alcance = rememberCoroutineScope()
 
-    // Triste: colores apagados (como el filtro saturate(0.5) de la web)
+    // Triste: colores apagados
     val filtro = remember(triste) {
         if (triste) ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0.45f) }) else null
     }

@@ -74,7 +74,7 @@ class MainActivity : ComponentActivity() {
             }
 
             // Barra de estado siempre con iconos blancos (la barra superior es verde oscuro).
-            // La barra de navegacion de abajo cambia segun el tema.
+
             DisposableEffect(oscuro) {
                 enableEdgeToEdge(
                     statusBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
