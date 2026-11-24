@@ -57,6 +57,19 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    // Android Lint revisa el codigo en cada corrida del pipeline (analisis estatico / SAST).
+    // No detiene la compilacion: deja reportes HTML y SARIF (este ultimo se ve en GitHub > Security).
+    lint {
+        abortOnError = false
+        htmlReport = true
+        sarifReport = true
+    }
+
+    // En las pruebas unitarias, las funciones de Android regresan valores vacios en vez de fallar
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 kotlin {
@@ -89,4 +102,7 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:auth-kt")
     implementation("io.ktor:ktor-client-android:3.0.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+
+    // Pruebas unitarias (se corren en el pipeline de GitHub Actions)
+    testImplementation("junit:junit:4.13.2")
 }

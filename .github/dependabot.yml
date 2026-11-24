@@ -1,0 +1,31 @@
+# Dependabot revisa cada semana si hay versiones nuevas de las librerias
+# (sobre todo parches de seguridad) y abre un pull request para actualizarlas.
+# El pipeline "Android CI" compila y prueba cada pull request antes de aceptarlo.
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build"
+    # Agrupa las librerias relacionadas para que lleguen menos pull requests
+    groups:
+      androidx-y-compose:
+        patterns:
+          - "androidx.*"
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin*"
+      supabase-y-ktor:
+        patterns:
+          - "io.github.jan-tennert.supabase*"
+          - "io.ktor*"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "ci"

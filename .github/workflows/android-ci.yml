@@ -1,0 +1,99 @@
+name: Android CI
+
+# Pipeline de la app de administracion:
+#   1. Corre las pruebas unitarias.
+#   2. Revisa el codigo con Android Lint (analisis estatico / SAST).
+#   3. Compila el APK de depuracion y lo deja para descargar.
+# Se ejecuta en cada push a master, en cada pull request y a mano desde la pestana Actions.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compilar:
+    name: Pruebas, Lint y APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      # Para publicar el reporte de Lint en la pestana Security > Code scanning
+      security-events: write
+
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v4
+
+      - name: Instalar Java 21 (el mismo que trae Android Studio)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Preparar Gradle (con cache)
+        uses: gradle/actions/setup-gradle@v4
+
+      # supabase.properties no se sube al repositorio (tiene las credenciales).
+      # Si el repositorio tiene las variables SUPABASE_URL y SUPABASE_ANON_KEY
+      # (Settings > Secrets and variables > Actions > Variables), se crea aqui
+      # para que el APK funcione. Si no, el APK se compila igual pero abre en
+      # la pantalla "Falta configurar Supabase".
+      - name: Credenciales de Supabase (opcional)
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_ANON_KEY" ]; then
+            printf 'SUPABASE_URL=%s\nSUPABASE_ANON_KEY=%s\n' "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > supabase.properties
+            echo "Se creo supabase.properties con las variables del repositorio."
+          else
+            echo "::notice::No hay variables SUPABASE_URL / SUPABASE_ANON_KEY. El APK abrira en 'Falta configurar Supabase'."
+          fi
+
+      # gradlew se subio desde Windows sin permiso de ejecucion
+      - name: Permiso de ejecucion para gradlew
+        run: chmod +x gradlew
+
+      - name: Pruebas unitarias
+        run: ./gradlew testDebugUnitTest
+
+      - name: Android Lint (analisis estatico)
+        run: ./gradlew lintDebug
+
+      - name: Compilar APK de depuracion
+        run: ./gradlew assembleDebug
+
+      - name: Guardar el APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: greontrack-admin-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - name: Guardar reportes de pruebas y Lint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes
+          path: |
+            app/build/reports/tests/
+            app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
+
+      # Los hallazgos de Lint aparecen en Security > Code scanning del repositorio
+      - name: Publicar Lint en Security
+        if: always() && github.event_name != 'pull_request'
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: app/build/reports/lint-results-debug.sarif
+          category: android-lint

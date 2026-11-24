@@ -473,7 +473,7 @@ private fun Modifier.tocarParaSeleccionar(
     }
 
 /** Convierte la posición X del dedo en el índice de la barra/punto (o null si no hay datos). */
-private fun indiceEnX(x: Float, ancho: Float, n: Int): Int? {
+internal fun indiceEnX(x: Float, ancho: Float, n: Int): Int? {
     if (n <= 0 || ancho <= 0f) return null
     return (x / (ancho / n)).toInt().coerceIn(0, n - 1)
 }

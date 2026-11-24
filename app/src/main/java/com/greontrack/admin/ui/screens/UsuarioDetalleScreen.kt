@@ -247,7 +247,7 @@ private fun EncabezadoUsuario(u: UsuarioDetalle, modifier: Modifier = Modifier) 
 }
 
 /** "N.º 1 en consumo", "Top 3 en consumo", "Lugar 12 de 40 en consumo"... */
-private fun textoRanking(lugar: Int, total: Int, kwh: Double): String = when {
+internal fun textoRanking(lugar: Int, total: Int, kwh: Double): String = when {
     kwh <= 0.0 -> "Sin consumo registrado"
     lugar == 1 -> "N.º 1 en consumo"
     lugar <= 3 -> "Top 3 en consumo"
