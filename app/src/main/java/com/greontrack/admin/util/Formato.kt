@@ -8,7 +8,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-/** Utilidades para mostrar números y fechas en español de México. */
+/** Utilidades para mostrar numeros y fechas en español de Mexico. */
 object Formato {
 
     private val mx: Locale = Locale.forLanguageTag("es-MX")
@@ -17,6 +17,7 @@ object Formato {
     private val fFechaHora = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm", mx)
     private val fDiaCorto = DateTimeFormatter.ofPattern("d/M", mx)
     private val fDiaLargo = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", mx)
+    private val fDiaMedio = DateTimeFormatter.ofPattern("EEE d 'de' MMM", mx)
 
     fun entero(n: Number): String = NumberFormat.getIntegerInstance(mx).format(n)
 
@@ -32,7 +33,7 @@ object Formato {
             minimumFractionDigits = 2
         }.format(d)
 
-    /** Número corto: 1,2 mil / 3,4 M */
+    /** Numero corto: 1,2 mil / 3,4 M */
     fun compacto(d: Double): String = when {
         d >= 1_000_000 -> decimal(d / 1_000_000, 1) + " M"
         d >= 10_000 -> decimal(d / 1_000, 1) + " mil"
@@ -52,6 +53,12 @@ object Formato {
     fun diaCorto(isoDate: String): String =
         runCatching { LocalDate.parse(isoDate.take(10)).format(fDiaCorto) }.getOrDefault(isoDate)
 
+    /** "Lun 3 de nov" (para los globitos de las gráficas). */
+    fun diaMedio(isoDate: String): String =
+        runCatching {
+            LocalDate.parse(isoDate.take(10)).format(fDiaMedio).replace(".", "").replaceFirstChar { it.uppercase() }
+        }.getOrDefault(isoDate)
+
     fun hoyLargo(): String =
         LocalDate.now().format(fDiaLargo).replaceFirstChar { it.uppercase() }
 
@@ -70,7 +77,7 @@ object Formato {
 
     fun nombreRol(rol: String): String = when (rol) {
         "admin" -> "Admin"
-        "analitico" -> "Analítico"
+        "analitico" -> "Analitico"
         else -> "General"
     }
 

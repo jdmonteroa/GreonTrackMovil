@@ -5,6 +5,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +38,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,19 +50,32 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.greontrack.admin.R
 import com.greontrack.admin.data.Carga
 import com.greontrack.admin.ui.theme.Greon
+import com.greontrack.admin.ui.theme.PlusJakartaSans
 import com.greontrack.admin.util.Formato
 
 // ---------------------------------------------------------------------
@@ -259,24 +277,38 @@ fun Avatar(nombre: String, color: Color = Greon.Verde, tamano: Dp = 44.dp) {
 
 // ---------------------------------------------------------------------
 //  Gráficas (dibujadas a mano con Canvas, sin librerías extra)
+//
+//  Al tocar una barra o un punto (o deslizar el dedo encima) se resalta
+//  y aparece un globito con el día y el valor exacto. Tocar otra vez
+//  el mismo elemento oculta el globito.
 // ---------------------------------------------------------------------
 @Composable
 fun GraficaBarras(
     valores: List<Double>,
     etiquetas: List<String>,
     color: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    etiquetasGlobo: List<String> = etiquetas,
+    formatoValor: (Double) -> String = { Formato.decimal(it, 1) }
 ) {
     val maximo = (valores.maxOrNull() ?: 0.0).coerceAtLeast(1.0)
     val lineaGuia = Greon.VerdeOscuro.copy(alpha = 0.08f)
+    val seleccion = remember(valores) { mutableStateOf<Int?>(null) }
+    val medidor = rememberTextMeasurer()
+    val haptico = LocalHapticFeedback.current
+
     Column(modifier.fillMaxWidth()) {
         Canvas(
             Modifier
                 .fillMaxWidth()
                 .height(150.dp)
+                .tocarParaSeleccionar(seleccion, valores.size) {
+                    haptico.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                }
         ) {
             val n = valores.size
             if (n == 0) return@Canvas
+            val elegido = seleccion.value
             for (i in 0..3) {
                 val y = size.height * i / 3f
                 drawLine(lineaGuia, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx())
@@ -285,15 +317,27 @@ fun GraficaBarras(
             val ancho = espacio * 0.6f
             valores.forEachIndexed { i, v ->
                 val alto = ((v / maximo).toFloat() * size.height).coerceAtLeast(3.dp.toPx())
+                val base = if (v > 0) color else color.copy(alpha = 0.18f)
+                // Si hay una barra elegida, las demás se ven más tenues
+                val apagada = elegido != null && elegido != i
                 drawRoundRect(
-                    color = if (v > 0) color else color.copy(alpha = 0.18f),
+                    color = if (apagada) base.copy(alpha = base.alpha * 0.35f) else base,
                     topLeft = Offset(i * espacio + (espacio - ancho) / 2f, size.height - alto),
                     size = Size(ancho, alto),
                     cornerRadius = CornerRadius(4.dp.toPx(), 4.dp.toPx())
                 )
             }
+            if (elegido != null && elegido < n) {
+                val alto = ((valores[elegido] / maximo).toFloat() * size.height).coerceAtLeast(3.dp.toPx())
+                dibujarGlobo(
+                    medidor = medidor,
+                    titulo = etiquetasGlobo.getOrElse(elegido) { "" },
+                    valor = formatoValor(valores[elegido]),
+                    ancla = Offset(elegido * espacio + espacio / 2f, size.height - alto)
+                )
+            }
         }
-        EtiquetasEje(etiquetas)
+        EtiquetasEje(etiquetas, seleccion.value)
     }
 }
 
@@ -302,19 +346,29 @@ fun GraficaLinea(
     valores: List<Double>,
     etiquetas: List<String>,
     color: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    etiquetasGlobo: List<String> = etiquetas,
+    formatoValor: (Double) -> String = { Formato.decimal(it, 1) }
 ) {
     val maximo = (valores.maxOrNull() ?: 0.0).coerceAtLeast(0.001)
     val lineaGuia = Greon.VerdeOscuro.copy(alpha = 0.08f)
+    val seleccion = remember(valores) { mutableStateOf<Int?>(null) }
+    val medidor = rememberTextMeasurer()
+    val haptico = LocalHapticFeedback.current
+
     Column(modifier.fillMaxWidth()) {
         Canvas(
             Modifier
                 .fillMaxWidth()
                 .height(150.dp)
                 .padding(top = 6.dp)
+                .tocarParaSeleccionar(seleccion, valores.size) {
+                    haptico.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                }
         ) {
             val n = valores.size
             if (n == 0) return@Canvas
+            val elegido = seleccion.value
             for (i in 0..3) {
                 val y = size.height * i / 3f
                 drawLine(lineaGuia, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx())
@@ -340,28 +394,160 @@ fun GraficaLinea(
                 area,
                 brush = Brush.verticalGradient(listOf(color.copy(alpha = 0.30f), color.copy(alpha = 0.02f)))
             )
+
+            // Línea punteada vertical en el día elegido
+            if (elegido != null && elegido < n) {
+                drawLine(
+                    color = color.copy(alpha = 0.55f),
+                    start = Offset(puntos[elegido].x, 0f),
+                    end = Offset(puntos[elegido].x, size.height),
+                    strokeWidth = 1.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 4.dp.toPx()))
+                )
+            }
+
             drawPath(linea, color = color, style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round))
-            puntos.forEach { p ->
-                drawCircle(Color.White, radius = 4.dp.toPx(), center = p)
-                drawCircle(color, radius = 2.6.dp.toPx(), center = p)
+            puntos.forEachIndexed { i, p ->
+                if (i == elegido) {
+                    // Punto elegido: más grande y con un halo
+                    drawCircle(color.copy(alpha = 0.18f), radius = 10.dp.toPx(), center = p)
+                    drawCircle(Color.White, radius = 5.5.dp.toPx(), center = p)
+                    drawCircle(color, radius = 4.dp.toPx(), center = p)
+                } else {
+                    drawCircle(Color.White, radius = 4.dp.toPx(), center = p)
+                    drawCircle(color, radius = 2.6.dp.toPx(), center = p)
+                }
+            }
+
+            if (elegido != null && elegido < n) {
+                dibujarGlobo(
+                    medidor = medidor,
+                    titulo = etiquetasGlobo.getOrElse(elegido) { "" },
+                    valor = formatoValor(valores[elegido]),
+                    ancla = puntos[elegido]
+                )
             }
         }
-        EtiquetasEje(etiquetas)
+        EtiquetasEje(etiquetas, seleccion.value)
     }
 }
 
+/**
+ * Detecta toques y deslizamientos horizontales sobre la gráfica y guarda
+ * en [seleccion] el índice de la barra/punto que quedó bajo el dedo.
+ */
+private fun Modifier.tocarParaSeleccionar(
+    seleccion: MutableState<Int?>,
+    n: Int,
+    alCambiarConDedo: () -> Unit
+): Modifier = this
+    .pointerInput(seleccion, n) {
+        detectTapGestures { posicion ->
+            val i = indiceEnX(posicion.x, size.width.toFloat(), n) ?: return@detectTapGestures
+            // Tocar el mismo elemento otra vez oculta el globito
+            seleccion.value = if (seleccion.value == i) null else i
+        }
+    }
+    .pointerInput(seleccion, n) {
+        detectHorizontalDragGestures(
+            onDragStart = { posicion ->
+                seleccion.value = indiceEnX(posicion.x, size.width.toFloat(), n)
+            },
+            onHorizontalDrag = { cambio, _ ->
+                cambio.consume()
+                val i = indiceEnX(cambio.position.x, size.width.toFloat(), n)
+                if (i != null && i != seleccion.value) {
+                    seleccion.value = i
+                    alCambiarConDedo()
+                }
+            }
+        )
+    }
+
+/** Convierte la posición X del dedo en el índice de la barra/punto (o null si no hay datos). */
+private fun indiceEnX(x: Float, ancho: Float, n: Int): Int? {
+    if (n <= 0 || ancho <= 0f) return null
+    return (x / (ancho / n)).toInt().coerceIn(0, n - 1)
+}
+
+/**
+ * Dibuja el globito con el día y el valor. Va arriba del punto [ancla];
+ * si no cabe arriba (barra muy alta), se pone abajo.
+ */
+private fun DrawScope.dibujarGlobo(
+    medidor: TextMeasurer,
+    titulo: String,
+    valor: String,
+    ancla: Offset
+) {
+    val fondo = Greon.VerdeOscuro
+    val texto = buildAnnotatedString {
+        withStyle(SpanStyle(color = Greon.VerdeClaro, fontSize = 10.sp, fontWeight = FontWeight.Medium)) {
+            append(titulo)
+        }
+        append("\n")
+        withStyle(SpanStyle(color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)) {
+            append(valor)
+        }
+    }
+    val medida = medidor.measure(
+        text = texto,
+        style = TextStyle(fontFamily = PlusJakartaSans, textAlign = TextAlign.Center)
+    )
+
+    val rellenoH = 10.dp.toPx()
+    val rellenoV = 6.dp.toPx()
+    val pico = 5.dp.toPx()
+    val separacion = 6.dp.toPx()
+    val esquina = 8.dp.toPx()
+
+    val ancho = medida.size.width + rellenoH * 2
+    val alto = medida.size.height + rellenoV * 2
+    val x = (ancla.x - ancho / 2f).coerceIn(0f, (size.width - ancho).coerceAtLeast(0f))
+    val cabeArriba = ancla.y - separacion - pico - alto >= 0f
+    val y = if (cabeArriba) ancla.y - separacion - pico - alto else ancla.y + separacion + pico
+
+    drawRoundRect(
+        color = fondo,
+        topLeft = Offset(x, y),
+        size = Size(ancho, alto),
+        cornerRadius = CornerRadius(esquina, esquina)
+    )
+
+    // Piquito que apunta a la barra/punto
+    val picoX = ancla.x.coerceIn(x + esquina, maxOf(x + esquina, x + ancho - esquina))
+    val triangulo = Path().apply {
+        if (cabeArriba) {
+            moveTo(picoX - pico, y + alto)
+            lineTo(picoX + pico, y + alto)
+            lineTo(picoX, y + alto + pico)
+        } else {
+            moveTo(picoX - pico, y)
+            lineTo(picoX + pico, y)
+            lineTo(picoX, y - pico)
+        }
+        close()
+    }
+    drawPath(triangulo, color = fondo)
+
+    drawText(medida, topLeft = Offset(x + rellenoH, y + rellenoV))
+}
+
 @Composable
-private fun EtiquetasEje(etiquetas: List<String>) {
+private fun EtiquetasEje(etiquetas: List<String>, elegido: Int? = null) {
     Row(Modifier.fillMaxWidth().padding(top = 6.dp)) {
         etiquetas.forEachIndexed { i, e ->
-            // Con 14 días mostramos una etiqueta sí y otra no para que quepan
-            val mostrar = etiquetas.size <= 8 || i % 2 == (etiquetas.size - 1) % 2
+            // Con 14 días mostramos una etiqueta sí y otra no para que quepan,
+            // pero la del día elegido siempre se ve (y resaltada)
+            val esElegida = i == elegido
+            val mostrar = esElegida || etiquetas.size <= 8 || i % 2 == (etiquetas.size - 1) % 2
             Text(
                 if (mostrar) e else "",
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
                 fontSize = 9.sp,
-                color = Greon.TextoSuave,
+                fontWeight = if (esElegida) FontWeight.Bold else FontWeight.Normal,
+                color = if (esElegida) Greon.VerdeOscuro else Greon.TextoSuave,
                 maxLines = 1
             )
         }

@@ -143,13 +143,18 @@ private fun ContenidoDashboard(d: DashboardStats) {
             Tarjeta(
                 modifier = Modifier.aparecer(entrada, primeraTarjeta),
                 titulo = "Nuevos usuarios",
-                descripcion = "Registros por día · últimos 14 días"
+                descripcion = "Registros por día · últimos 14 días · toca una barra"
             ) {
                 if (d.registrosPorDia.isEmpty()) Vacio("Sin datos")
                 else GraficaBarras(
                     valores = d.registrosPorDia.map { it.total },
                     etiquetas = d.registrosPorDia.map { Formato.diaCorto(it.dia) },
-                    color = Greon.Verde
+                    etiquetasGlobo = d.registrosPorDia.map { Formato.diaMedio(it.dia) },
+                    color = Greon.Verde,
+                    formatoValor = { v ->
+                        val n = Math.round(v).toInt()
+                        if (n == 1) "1 usuario nuevo" else "${Formato.entero(n)} usuarios nuevos"
+                    }
                 )
             }
         }
@@ -158,7 +163,7 @@ private fun ContenidoDashboard(d: DashboardStats) {
             Tarjeta(
                 modifier = Modifier.aparecer(entrada, primeraTarjeta + 1),
                 titulo = "Consumo registrado",
-                descripcion = "kWh por día · últimos 14 días"
+                descripcion = "kWh por día · últimos 14 días · toca un punto"
             ) {
                 if (d.kwhPorDia.isEmpty()) Vacio("Sin datos")
                 else {
@@ -172,7 +177,9 @@ private fun ContenidoDashboard(d: DashboardStats) {
                     GraficaLinea(
                         valores = d.kwhPorDia.map { it.total },
                         etiquetas = d.kwhPorDia.map { Formato.diaCorto(it.dia) },
-                        color = Greon.Ambar
+                        etiquetasGlobo = d.kwhPorDia.map { Formato.diaMedio(it.dia) },
+                        color = Greon.Ambar,
+                        formatoValor = { "${Formato.decimal(it, 2)} kWh" }
                     )
                 }
             }
