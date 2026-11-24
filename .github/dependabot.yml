@@ -1,13 +1,19 @@
-# Dependabot revisa cada semana si hay versiones nuevas de las librerias
-# (sobre los parches de seguridad) y abre un pull request para actualizarlas.
-# El pipeline "Android CI" compila y prueba cada pull request antes de aceptarlo.
+# Dependabot: revision de dependencias (SCA).
+#
+# open-pull-requests-limit: 0 apaga las actualizaciones "de version" (las que
+# abrian un pull request por cada libreria nueva), para que nadie haga merge
+# por error de una version que rompe la app. Las alertas y actualizaciones de
+# SEGURIDAD no dependen de este limite: siguen funcionando si estan activadas
+# en Settings > Advanced Security > Dependabot.
+#
+# Para volver a recibir pull requests de versiones nuevas, cambia el 0 por 5.
 version: 2
 updates:
   - package-ecosystem: gradle
     directory: "/"
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     commit-message:
       prefix: "build"
     # Agrupa las librerias relacionadas para que lleguen menos pull requests
@@ -27,5 +33,6 @@ updates:
     directory: "/"
     schedule:
       interval: monthly
+    open-pull-requests-limit: 0
     commit-message:
       prefix: "ci"

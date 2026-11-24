@@ -51,7 +51,7 @@ app/src/main/java/com/greontrack/admin/
 
 app/src/test/                pruebas unitarias
 .github/workflows/           pipeline de GitHub Actions
-.github/dependabot.yml       actualizaciones automáticas de librerías
+.github/dependabot.yml       revisión de librerías (Dependabot)
 ```
 
 ## Integración continua (GitHub Actions)
@@ -77,5 +77,6 @@ en "Falta configurar Supabase".
 - Las credenciales viven en `supabase.properties`, que está en `.gitignore`.
 - Toda la comunicación con Supabase va por HTTPS.
 - **SAST**: Android Lint revisa el código en cada corrida del pipeline.
-- **SCA**: Dependabot revisa cada semana las librerías y abre pull requests
-  con las versiones nuevas o los parches de seguridad.
+- **SCA**: Dependabot revisa las librerías del proyecto. Las actualizaciones
+  de versión están apagadas (`open-pull-requests-limit: 0`) para no aceptar
+  por error una versión que rompa la app; solo quedan las de seguridad.
